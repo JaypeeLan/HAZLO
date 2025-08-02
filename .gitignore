@@ -28,3 +28,5 @@ pnpm-debug.log*
 
 dump.rdb
 *.pid
+
+notes.txt

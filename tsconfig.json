@@ -12,7 +12,7 @@
     "strict": true,
     "skipLibCheck": true,
     "strictNullChecks": false,
-    "noImplicitAny": false,
+    "noImplicitAny": true,
     "strictBindCallApply": false,
     "useUnknownInCatchVariables": false,
     "sourceMap": true,

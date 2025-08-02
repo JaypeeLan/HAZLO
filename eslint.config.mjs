@@ -29,7 +29,15 @@ export default defineConfig([
       },
     },
     rules: {
-      // You can override rules here
+      '@typescript-eslint/no-explicit-any': 'off',
+      '@typescript-eslint/no-unsafe-function-type': 'off',
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        {
+          argsIgnorePattern: '^(req|res|next)$',
+          varsIgnorePattern: '^(req|res|next)$',
+        },
+      ],
     },
   },
 ]);
