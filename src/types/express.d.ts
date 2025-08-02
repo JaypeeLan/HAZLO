@@ -1,8 +1,7 @@
-declare global {
-  namespace Express {
-    interface Request {
-     
-    }
-  }
-}
+// declare global {
+//   namespace Express {
+//     interface Request {
 
+//     }
+//   }
+// }
