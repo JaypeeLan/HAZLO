@@ -11,6 +11,7 @@ export interface IUser extends Document {
   phone: string;
   notification?: boolean;
   isVerified: boolean;
+  verificationToken?: string;
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -23,6 +24,7 @@ const userSchema = new Schema({
   address: { type: String },
   notification: { type: Boolean, default: true },
   isVerified: { type: Boolean, default: false },
+  verificationToken: { type: String },
   role: { type: String, enum: ['user', 'admin'], default: 'user' },
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },

@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const phoneRegex = /^[0-9]{11}$/; // e.g., 11-digit NG number
+// const phoneRegex = /^[0-9]{11}$/; // e.g., 11-digit NG number
 const nameRegex = /^[a-zA-Z\s]+$/;
 const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d@$!%*?&]{6,}$/;
 
@@ -22,9 +22,9 @@ const globalValidator = (obj: any): string[] => {
           errors.push(`${fullKey} is not a valid email`);
         }
 
-        if (key.toLowerCase().includes('phone') && !phoneRegex.test(value)) {
-          errors.push(`${fullKey} must be a valid 11-digit phone number`);
-        }
+        // if (key.toLowerCase().includes('phone') && !phoneRegex.test(value)) {
+        //   errors.push(`${fullKey} must be a valid 11-digit phone number`);
+        // }
 
         if (key.toLowerCase().includes('name') && !nameRegex.test(value)) {
           errors.push(`${fullKey} must contain only letters and spaces`);
