@@ -1,11 +1,11 @@
 {
   "name": "test",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "dist/index.js",
   "scripts": {
-    "dev": "ts-node-dev --respawn --transpile-only src/base/app.ts",
-    "build": "tsc src/base/app.ts",
-    "start": "node dist/server.js",
+    "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js",
     "lint": "eslint src/**/*.ts --fix",
     "format": "prettier --write \"src/**/*.ts\"",
     "test": "echo \"Error: no test specified\" && exit 1"
