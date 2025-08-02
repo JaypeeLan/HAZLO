@@ -8,13 +8,14 @@
     "start": "node dist/server.js",
     "lint": "eslint src/**/*.ts --fix",
     "format": "prettier --write \"src/**/*.ts\"",
-    "prepare": "husky",
+    "prepare": "husky install",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "husky": {
-    "hooks": {
-      "pre-commit": "npm run lint"
-    }
+  "lint-staged": {
+    "*.{js,ts}": [
+      "eslint --fix",
+      "prettier --write"
+    ]
   },
   "keywords": [],
   "author": "",
