@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from 'express';
 import { AppError } from '../middlewares/errorHandler';
 import UserModel from '../models/user';
-import { ResponseMessages, LogMessages } from '../utils/constants';
+import { ResponseMessages } from '../utils/constants';
 import { sendgridFromEmail, sendgridClient } from '../utils/sendGrid';
 import { sendResponse } from '../utils/sendResponse';
 import { twilioClient, twilioServiceSid } from '../utils/twilio';
@@ -28,18 +28,19 @@ export const sendOtp = async (
       .services(twilioServiceSid)
       .verifications.create({ to: phone, channel: 'sms' });
 
-    console.log(LogMessages.SENT_OTP, phone);
-
     sendResponse({
       res,
       statusCode: 200,
       status: 'success',
       message: ResponseMessages.OTP_SENT,
-      data: { sid: verification.sid },
+      data: {
+        phone: verification.to,
+        numberOfAttempts: verification.sendCodeAttempts.length,
+      },
     });
   } catch (error) {
     console.error('Send OTP error:', error);
-    next(new AppError(ResponseMessages.OTP_ERROR, 500));
+    next(new AppError(ResponseMessages.OTP_SEND_ERROR, 500));
   }
 };
 
@@ -70,14 +71,12 @@ export const verifyOtp = async (
       await updateUserVerification(user);
     }
 
-    console.log(LogMessages.VERIFIED_OTP, phone);
-
     sendResponse({
       res,
       statusCode: 200,
       status: 'success',
       message: ResponseMessages.OTP_VERIFY_SUCCESS,
-      data: { ...user },
+      data: null,
     });
   } catch (error) {
     console.error('Verify OTP error:', error);
@@ -148,7 +147,6 @@ export const verifyEmail = async (
     }
 
     await updateUserVerification(user);
-    // console.log(LogMessages.VERIFIED_EMAIL, user.email);
 
     sendResponse({
       res,

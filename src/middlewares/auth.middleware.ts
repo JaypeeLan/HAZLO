@@ -29,7 +29,7 @@ export const authenticateToken = (
 
 // Middleware for role-based authorization
 export const authorize = (requiredRoles: string[]) => {
-  return (req: Request, res: Response, next: NextFunction) => {
+  return (req: Request, _: Response, next: NextFunction) => {
     const user = req.user;
 
     if (!user) {

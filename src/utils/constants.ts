@@ -20,7 +20,8 @@ export enum ResponseMessages {
 
   // OTP-specific messages
   OTP_SENT = 'An OTP has been sent to your phone number. Please check your messages.',
-  OTP_ERROR = 'Error sending or verifying OTP. Please try again later.',
+  OTP_SEND_ERROR = 'Error sending OTP. Please try again later.',
+  OTP_ERROR = 'Error  verifying OTP. Please try again later.',
   OTP_INVALID = 'Wrong OTP. Please try again.',
   OTP_VERIFY_SUCCESS = 'OTP verified successfully.',
 
