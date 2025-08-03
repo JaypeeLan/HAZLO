@@ -1,14 +1,20 @@
-export interface UserType {
-  name: string;
-  username: string;
-  avatar: string;
+export interface UserInterface {
+  _id?: string;
+  id?: string;
   email: string;
-  password: string;
-  role: 'user' | 'admin';
-  address: string;
+  profileImage: string;
   phone: string;
-  notification: boolean;
+  password: string;
+  name?: string;
+  username?: string;
+  address?: string;
+  role: 'user' | 'admin';
+  token?: string;
   isVerified: boolean;
+  verificationToken?: string;
+  resetToken?: string;
+  resetTokenExpires?: Date;
+  notification?: boolean;
   createdAt: Date;
   updatedAt: Date;
 }

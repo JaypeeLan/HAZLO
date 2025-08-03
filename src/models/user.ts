@@ -1,36 +1,75 @@
-import { Schema, model } from 'mongoose';
+import { Schema, model, Document } from 'mongoose';
+import { UserInterface } from '../types/index.types';
 
-export interface IUser extends Document {
-  name: string;
-  username?: string;
-  avatar?: string;
-  email: string;
-  password: string;
-  role: 'user' | 'admin';
-  address: string;
-  phone: string;
-  notification?: boolean;
-  isVerified: boolean;
-  verificationToken?: string;
-  createdAt?: Date;
-  updatedAt?: Date;
-}
+export type IUser = UserInterface & Document;
 
-const userSchema = new Schema<IUser>({
-  name: { type: String, required: true },
-  avatar: { type: String },
-  phone: { type: String, required: true, unique: true },
-  address: { type: String },
-  notification: { type: Boolean, default: true },
-  isVerified: { type: Boolean, default: false },
-  verificationToken: { type: String, default: null },
-  role: { type: String, default: 'user' },
-  email: { type: String, required: true, unique: true },
-  password: { type: String, required: true },
-  createdAt: { type: Date, default: Date.now },
-  updatedAt: { type: Date, default: Date.now },
-});
+const userSchema = new Schema<IUser>(
+  {
+    email: {
+      type: String,
+      required: true,
+      unique: true,
+    },
+    phone: {
+      type: String,
+      required: true,
+      unique: true,
+    },
+    password: {
+      type: String,
+      required: true,
+    },
 
-const UserModel = model('User', userSchema);
+    name: {
+      type: String,
+    },
+    username: { type: String },
+
+    profileImage: {
+      type: String,
+    },
+    address: {
+      type: String,
+    },
+    role: {
+      type: String,
+      enum: ['user', 'admin'],
+      default: 'user',
+    },
+    isVerified: {
+      type: Boolean,
+      default: false,
+    },
+    verificationToken: {
+      type: String,
+      default: null,
+    },
+    resetToken: {
+      type: String,
+      default: null,
+    },
+    resetTokenExpires: {
+      type: Date,
+      default: null,
+    },
+    notification: {
+      type: Boolean,
+      default: true,
+    },
+    createdAt: {
+      type: Date,
+      default: Date.now,
+    },
+    updatedAt: {
+      type: Date,
+      default: Date.now,
+    },
+  },
+  {
+    timestamps: true,
+  }
+);
+
+const UserModel = model<IUser>('User', userSchema);
 
 export default UserModel;
