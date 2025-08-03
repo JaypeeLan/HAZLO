@@ -18,6 +18,7 @@ export interface IUser extends Document {
 
 const adminSchema = new Schema<IUser>({
   name: { type: String, required: true },
+  username: { type: String },
   avatar: { type: String },
   phone: { type: String, required: true, unique: true },
   address: { type: String },
