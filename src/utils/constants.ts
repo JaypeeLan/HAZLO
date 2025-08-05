@@ -35,6 +35,7 @@ export enum ResponseMessages {
   LOGIN_ERROR = 'Error during login. Please try again later.',
   NO_TOKEN = 'Authorization token is missing. Please log in to access this resource.',
   INVALID_TOKEN = 'Invalid or expired token. Please log in again.',
+  WRONG_PASSWORD = 'Wrong password. Please try again',
 
   // Password reset messages
   RESET_TOKEN_SENT = 'A password reset token has been sent to your email or phone.',
@@ -48,6 +49,16 @@ export enum ResponseMessages {
   PROFILE_ERROR = 'Error processing profile. Please try again later.',
   PROFILE_EXISTS = 'Profile already exists for this user.',
   UNAUTHORIZED = 'You are not authorized to perform this action.',
+
+  // orders
+  ORDERS_FETCHED = 'Orders fetched successfully',
+  ORDERS_FETCH_FAILED = 'Failed to fetch orders. Please try again.',
+  ORDER_CREATE_SUCCESS = 'Order created successfully',
+  ORDER_CREATE_FAILED = 'Failed to create order',
+
+  //payment
+  PAYMENT_SUCCESS = 'Payment successful',
+  PAYMENT_FAILED = 'Payment failed. Please try again.',
 }
 
 export enum LogMessages {
