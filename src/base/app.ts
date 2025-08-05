@@ -18,11 +18,12 @@ app.use(logger);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.use('/api/v1', validateRequests, routes);
 //  for cron job
 app.get('/', (_, res) => {
   res.status(200).json({ status: 'success' });
 });
+
+app.use('/api/v1', validateRequests, routes);
 
 warmRenderServer();
 
