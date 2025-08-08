@@ -233,3 +233,44 @@ export const verifyResetToken = async (
     );
   }
 };
+
+// delete user
+
+export const deleteUser = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { email } = req.body;
+
+    // Validate email input
+    if (!email) {
+      return next(new AppError('Email is required', 400));
+    }
+
+    // Find the user first (await the promise)
+    const userToBeDeleted = await UserModel.findOne({ email });
+
+    if (!userToBeDeleted) {
+      return next(new AppError('User not found', 404));
+    }
+
+    // Delete the user
+    await UserModel.deleteOne({ email });
+
+    sendResponse({
+      res,
+      statusCode: 200,
+      status: 'success',
+      message: 'User deleted successfully',
+      data: null,
+    });
+  } catch (error) {
+    next(
+      error instanceof AppError
+        ? error
+        : new AppError('Failed to delete user', 500)
+    );
+  }
+};
