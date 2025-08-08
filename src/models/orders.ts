@@ -4,6 +4,6 @@ const ordersSchema = new Schema({
   itemName: { type: String, default: null },
 });
 
-const OrdersModel = model('order', ordersSchema);
+const OrdersModel = model('Order', ordersSchema);
 
 export default OrdersModel;

@@ -1,25 +1,12 @@
 import { Schema, model } from 'mongoose';
+import { UserInterface } from '../types/index.types';
 
-export interface IUser extends Document {
-  name: string;
-  username?: string;
-  avatar?: string;
-  email: string;
-  password: string;
-  role: 'user' | 'admin';
-  address: string;
-  phone: string;
-  notification?: boolean;
-  isVerified: boolean;
-  verificationToken?: string;
-  createdAt?: Date;
-  updatedAt?: Date;
-}
+export type IUser = UserInterface & Document;
 
 const adminSchema = new Schema<IUser>({
   name: { type: String, required: true },
   username: { type: String },
-  avatar: { type: String },
+  profileImage: { type: String },
   phone: { type: String, required: true, unique: true },
   address: { type: String },
   notification: { type: Boolean, default: true },
@@ -32,6 +19,6 @@ const adminSchema = new Schema<IUser>({
   updatedAt: { type: Date, default: Date.now },
 });
 
-const AdminModel = model('User', adminSchema);
+const AdminModel = model('Admin', adminSchema);
 
 export default AdminModel;

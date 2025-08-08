@@ -25,6 +25,6 @@ const LaundryServiceSchema = new Schema<LaundryServiceInterface>({
   ],
 });
 
-const LaundryServiceModel = model('laundryService', LaundryServiceSchema);
+const LaundryServiceModel = model('LaundryService', LaundryServiceSchema);
 
 export default LaundryServiceModel;

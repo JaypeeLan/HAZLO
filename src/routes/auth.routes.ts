@@ -8,6 +8,7 @@ import {
 
 import {
   sendOtp,
+  verifyEmail,
   verifyOtp,
   // sendEmailVerification,
   // verifyEmail,
@@ -21,7 +22,7 @@ router.post('/verify-otp', verifyOtp);
 
 // Email Verification Routes
 // router.post('/send-email-verification', sendEmailVerification);
-// router.post('/verify-email', verifyEmail);
+router.post('/verify-email', verifyEmail);
 
 // Authentication Routes
 router.post('/register', register);
