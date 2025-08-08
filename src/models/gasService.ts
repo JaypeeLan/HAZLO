@@ -25,6 +25,6 @@ const gasServiceSchema = new Schema<GasServiceInterface>({
   time: { type: String },
 });
 
-const GasServiceModel = model('gasService', gasServiceSchema);
+const GasServiceModel = model('GasService', gasServiceSchema);
 
 export default GasServiceModel;
