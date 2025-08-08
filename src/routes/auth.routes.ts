@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import {
+  deleteUser,
   login,
   register,
   resetPassword,
@@ -29,5 +30,6 @@ router.post('/register', register);
 router.post('/login', login);
 router.post('/reset-password', resetPassword);
 router.post('/verify-reset-token', verifyResetToken);
+router.post('/delete-user', deleteUser);
 
 export default router;
