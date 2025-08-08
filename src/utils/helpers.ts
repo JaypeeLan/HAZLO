@@ -35,6 +35,7 @@ export const formatUser = (user: UserInterface) => {
     token,
     profileImage,
     address,
+    notification,
   } = user;
 
   const formatted: Record<string, any> = {
@@ -46,6 +47,7 @@ export const formatUser = (user: UserInterface) => {
     ...(role && { role }),
     ...(typeof isVerified === 'boolean' && { isVerified }),
     ...(token && { token }),
+    ...(notification && { notification }),
     ...(profileImage && { profileImage }),
     ...(address && { address }),
   };
