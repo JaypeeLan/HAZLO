@@ -81,3 +81,57 @@ export const validateRequests = (
 
   next();
 };
+
+export const validateOrderFields = (serviceType: string, body: any) => {
+  if (!serviceType) throw new Error('Service type is required');
+
+  switch (serviceType) {
+    case 'refillCylinder':
+      if (!body.refillSize) throw new Error('Refill size is required');
+      if (!body.pickupAddress) throw new Error('Pickup address is required');
+      if (!body.deliveryAddress)
+        throw new Error('Delivery address is required');
+      if (!body.phoneNumber) throw new Error('Phone number is required');
+      if (!body.deliveryTime) throw new Error('Delivery time is required');
+      if (body.deliveryTime === 'schedule' && (!body.date || !body.time)) {
+        throw new Error('Date and time are required for scheduled delivery');
+      }
+      if (!body.total) throw new Error('Total is required');
+      break;
+
+    case 'buyCylinder':
+      if (!body.cylinderSize) throw new Error('Cylinder size is required');
+      if (!body.deliveryAddress)
+        throw new Error('Delivery address is required');
+      if (!body.deliveryTime) throw new Error('Delivery time is required');
+      if (body.deliveryTime === 'schedule' && (!body.date || !body.time)) {
+        throw new Error('Date and time are required for scheduled delivery');
+      }
+      if (!body.total) throw new Error('Total is required');
+      break;
+
+    case 'laundry':
+      if (!body.serviceTypeLaundry)
+        throw new Error('Laundry service type is required');
+      if (
+        !body.items ||
+        !Array.isArray(body.items) ||
+        body.items.length === 0
+      ) {
+        throw new Error('At least one laundry item is required');
+      }
+      if (!body.pickupAddress) throw new Error('Pickup address is required');
+      if (!body.deliveryAddress)
+        throw new Error('Delivery address is required');
+      if (!body.pickupPreference)
+        throw new Error('Pickup preference is required');
+      if (body.pickupPreference === 'schedule' && (!body.date || !body.time)) {
+        throw new Error('Date and time are required for scheduled pickup');
+      }
+      if (!body.total) throw new Error('Total is required');
+      break;
+
+    default:
+      throw new Error('Invalid service type');
+  }
+};

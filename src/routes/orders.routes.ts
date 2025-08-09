@@ -1,9 +1,11 @@
 import { Router } from 'express';
-import { getOrders } from '../controllers/orders.controller';
+
 import { authenticateToken } from '../middlewares/auth.middleware';
+import { createOrder, getOrders } from '../controllers/orders.controller';
 
 const router = Router();
 
-router.get('', authenticateToken, getOrders);
+router.post('/create-order', authenticateToken, createOrder);
+router.get('/orders', authenticateToken, getOrders);
 
 export default router;
