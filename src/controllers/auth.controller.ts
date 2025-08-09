@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
 import { AppError } from '../middlewares/errorHandler';
-import { ResponseMessages, LogMessages } from '../utils/constants';
+import { ResponseMessages } from '../utils/constants';
 import { sendgridFromEmail, sendgridClient } from '../utils/sendGrid';
 import { sendResponse } from '../utils/sendResponse';
 import { twilioClient, twilioServiceSid } from '../utils/twilio';
@@ -170,8 +170,6 @@ export const resetPassword = async (
           customCode: resetToken,
         });
     }
-
-    console.log(LogMessages.PASSWORD_RESET_SENT, email || phone);
 
     sendResponse({
       res,

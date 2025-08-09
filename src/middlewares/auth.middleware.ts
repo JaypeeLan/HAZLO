@@ -3,9 +3,10 @@ import { ResponseMessages } from '../utils/constants';
 import { AppError } from './errorHandler';
 import jwt from 'jsonwebtoken';
 import { Request, Response, NextFunction } from 'express';
+import UserModel from '../models/user';
 
 // Middleware to authenticate JWT token
-export const authenticateToken = (
+export const authenticateToken = async (
   req: Request,
   _: Response,
   next: NextFunction
@@ -18,11 +19,17 @@ export const authenticateToken = (
   }
 
   try {
-    const decoded = jwt.verify(token, ENV.JWT_SECRET);
-    req.user = decoded;
+    const decoded = jwt.verify(token, ENV.JWT_SECRET) as { id: string };
+
+    const user = await UserModel.findById(decoded.id).select('-password');
+    if (!user) {
+      return next(new AppError(ResponseMessages.USER_NOT_FOUND, 404));
+    }
+
+    req.user = user;
     next();
   } catch (error) {
-    console.log(error);
+    console.error(error);
     return next(new AppError(ResponseMessages.INVALID_TOKEN, 401));
   }
 };

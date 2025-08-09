@@ -53,7 +53,7 @@ export enum ResponseMessages {
   // orders
   ORDERS_FETCHED = 'Orders fetched successfully',
   ORDERS_FETCH_FAILED = 'Failed to fetch orders. Please try again.',
-  ORDER_CREATE_SUCCESS = 'Order created successfully',
+  ORDER_CREATED = 'Order created successfully',
   ORDER_CREATE_FAILED = 'Failed to create order',
 
   //payment

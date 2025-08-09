@@ -7,7 +7,7 @@ const router = Router();
 
 router.use('/auth', authRouter);
 router.use('/user', profileRoutes);
-router.use('/orders', orderRoutes);
+router.use('/', orderRoutes);
 router.use('/file', uploadRoutes);
 
 export default router;
