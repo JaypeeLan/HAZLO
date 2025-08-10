@@ -1,3 +1,5 @@
+import { Schema } from 'mongoose';
+
 export interface UserInterface {
   _id?: string;
   id?: string;
@@ -19,8 +21,13 @@ export interface UserInterface {
   updatedAt: Date;
 }
 
-export type OrderStatus = 'pending' | 'completed' | 'cancelled';
-export type PaymentStatus = 'pending' | 'paid';
+export type OrderStatus =
+  | 'pending'
+  | 'completed'
+  | 'cancelled'
+  | 'in-transit'
+  | 'accepted';
+export type PaymentStatus = 'pending' | 'paid' | 'refunded';
 export type ServiceType = 'refillCylinder' | 'buyCylinder' | 'laundry';
 
 export interface IOrder {
@@ -30,6 +37,7 @@ export interface IOrder {
   serviceType: ServiceType;
   orderStatus: OrderStatus;
   paymentStatus: PaymentStatus;
+  transactionId: Schema.Types.ObjectId;
   createdAt: Date;
   updatedAt: Date;
 
@@ -51,4 +59,23 @@ export interface IOrder {
   items?: { itemName: string; itemQuantity: number; itemPrice: number }[];
   customItems?: string[];
   pickupPreference?: 'now' | 'schedule';
+}
+
+export interface GasPrice {
+  size: number; // in kg
+  orderPrice: number;
+  refillPrice: number;
+}
+
+export interface LaundryItem {
+  itemName: string;
+  price: number;
+}
+
+export interface PriceListInterface {
+  service: 'gas' | 'laundry';
+  gasPrices?: GasPrice[];
+  laundryPrices?: LaundryItem[];
+  createdAt: Date;
+  updatedAt: Date;
 }

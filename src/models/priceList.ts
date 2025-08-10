@@ -1,23 +1,11 @@
 import { Schema, model, Document } from 'mongoose';
+import {
+  GasPrice,
+  LaundryItem,
+  PriceListInterface,
+} from '../types/index.types';
 
-export interface GasPrice {
-  size: number; // in kg
-  orderPrice: number;
-  refillPrice: number;
-}
-
-export interface LaundryItem {
-  item: string;
-  price: number;
-}
-
-export interface PriceListInterface extends Document {
-  service: 'gas' | 'laundry';
-  gasPrices?: GasPrice[];
-  laundryPrices?: LaundryItem[];
-  createdAt: Date;
-  updatedAt: Date;
-}
+export type PriceListI = PriceListInterface & Document;
 
 const gasPriceSchema = new Schema<GasPrice>(
   {
@@ -30,13 +18,13 @@ const gasPriceSchema = new Schema<GasPrice>(
 
 const laundryItemSchema = new Schema<LaundryItem>(
   {
-    item: { type: String, required: true },
+    itemName: { type: String, required: true },
     price: { type: Number, default: 0 },
   },
   { _id: false }
 );
 
-const priceListSchema = new Schema<PriceListInterface>(
+const priceListSchema = new Schema<PriceListI>(
   {
     service: {
       type: String,
@@ -51,6 +39,6 @@ const priceListSchema = new Schema<PriceListInterface>(
   }
 );
 
-const PriceListModel = model<PriceListInterface>('PriceList', priceListSchema);
+const PriceListModel = model<PriceListI>('PriceList', priceListSchema);
 
 export default PriceListModel;
