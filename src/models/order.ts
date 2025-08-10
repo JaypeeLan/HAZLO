@@ -1,5 +1,4 @@
 import { Document, model, Schema } from 'mongoose';
-import { v4 as uuidv4 } from 'uuid';
 import { IOrder } from '../types/index.types';
 
 export type IOrderInterface = IOrder & Document;
@@ -8,7 +7,8 @@ const orderSchema = new Schema<IOrderInterface>(
   {
     customerName: { type: String, required: true },
     customerId: { type: String, required: true },
-    orderId: { type: String, default: () => uuidv4(), unique: true },
+    orderId: { type: String, required: true, unique: true },
+    transactionId: { type: Schema.Types.ObjectId, ref: 'Transaction' },
     serviceType: {
       type: String,
       enum: ['refillCylinder', 'buyCylinder', 'laundry'],
@@ -16,15 +16,14 @@ const orderSchema = new Schema<IOrderInterface>(
     },
     orderStatus: {
       type: String,
-      enum: ['pending', 'completed', 'cancelled'],
+      enum: ['pending', 'completed', 'cancelled', 'in-transit', 'accepted'],
       default: 'pending',
     },
     paymentStatus: {
       type: String,
-      enum: ['pending', 'paid'],
+      enum: ['pending', 'paid', 'refunded'],
       default: 'pending',
     },
-
     // Refill Cylinder
     refillSize: String,
     pickupAddress: String,
@@ -33,11 +32,9 @@ const orderSchema = new Schema<IOrderInterface>(
     deliveryTime: { type: String, enum: ['now', 'schedule'] },
     date: String,
     time: String,
-    total: Number,
-
+    total: { type: Number, required: true },
     // Buy Cylinder
     cylinderSize: String,
-
     // Laundry
     serviceTypeLaundry: String,
     items: [
@@ -52,6 +49,7 @@ const orderSchema = new Schema<IOrderInterface>(
   },
   { timestamps: true }
 );
+
 const OrderModel = model<IOrderInterface>('Order', orderSchema);
 
 export default OrderModel;

@@ -27,7 +27,7 @@ export const register = async (
 
     const existingUser = await UserModel.findOne({
       $or: [{ email }, { phone }],
-    });
+    }).select('+password');
     if (existingUser) {
       throw new AppError(ResponseMessages.USER_EXISTS, 400);
     }
@@ -63,14 +63,13 @@ export const register = async (
     //   .verifications.create({ to: phone, channel: 'sms' });
 
     const token = generateJwtToken(createdUser._id as string);
-    const formattedUser = formatUser({ ...createdUser.toObject(), token });
 
     sendResponse({
       res,
       statusCode: 201,
       status: 'success',
       message: ResponseMessages.REGISTRATION_SUCCESS,
-      data: formattedUser,
+      data: formatUser(createdUser, token),
     });
   } catch (error) {
     console.error('Registration error:', error);
@@ -95,7 +94,7 @@ export const login = async (
       throw new AppError(ResponseMessages.INVALID_CREDENTIALS, 400);
     }
 
-    const user = await UserModel.findOne({ email });
+    const user = await UserModel.findOne({ email }).select('+password');
     if (!user) {
       throw new AppError(ResponseMessages.USER_NOT_FOUND, 404);
     }
@@ -110,14 +109,13 @@ export const login = async (
     }
 
     const token = generateJwtToken(user._id as string);
-    const formattedUser = formatUser({ ...user.toObject(), token });
 
     sendResponse({
       res,
       statusCode: 200,
       status: 'success',
       message: ResponseMessages.LOGIN_SUCCESS,
-      data: formattedUser,
+      data: formatUser(user, token),
     });
   } catch (error) {
     console.error('Login error:', error);
@@ -179,7 +177,6 @@ export const resetPassword = async (
       data: { email: email || null, phone: phone || null },
     });
   } catch (error) {
-    console.error('Reset password error:', error);
     next(
       error instanceof AppError
         ? error

@@ -18,6 +18,7 @@ const userSchema = new Schema<IUser>(
     password: {
       type: String,
       required: true,
+      select: false,
     },
 
     name: {
@@ -43,14 +44,17 @@ const userSchema = new Schema<IUser>(
     verificationToken: {
       type: String,
       default: null,
+      select: false,
     },
     resetToken: {
       type: String,
       default: null,
+      select: false,
     },
     resetTokenExpires: {
       type: Date,
       default: null,
+      select: false,
     },
     notification: {
       type: Boolean,
@@ -59,10 +63,12 @@ const userSchema = new Schema<IUser>(
     createdAt: {
       type: Date,
       default: Date.now,
+      select: false,
     },
     updatedAt: {
       type: Date,
       default: Date.now,
+      select: false,
     },
   },
   {

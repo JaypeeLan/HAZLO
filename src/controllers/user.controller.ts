@@ -3,7 +3,7 @@ import { AppError } from '../middlewares/errorHandler';
 import { ResponseMessages } from '../utils/constants';
 import { sendResponse } from '../utils/sendResponse';
 import UserModel from '../models/user';
-import { formatUser } from '../utils/helpers';
+
 import cloudinary from 'cloudinary';
 
 export const getProfile = async (
@@ -28,7 +28,7 @@ export const getProfile = async (
       statusCode: 200,
       status: 'success',
       message: ResponseMessages.PROFILE_FETCHED,
-      data: formatUser(user),
+      data: user,
     });
   } catch (error) {
     next(
@@ -77,7 +77,7 @@ export const updateProfile = async (
       statusCode: 200,
       status: 'success',
       message: ResponseMessages.PROFILE_UPDATED,
-      data: formatUser(updatedUser),
+      data: updatedUser,
     });
   } catch (error) {
     next(
@@ -229,7 +229,7 @@ export const updateProfileImage = async (
       statusCode: 200,
       status: 'success',
       message: 'Profile image updated successfully',
-      data: formatUser(updatedUser),
+      data: updatedUser,
     });
   } catch (error: any) {
     next(

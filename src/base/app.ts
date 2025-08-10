@@ -15,9 +15,10 @@ const app = express();
 app.use(cors());
 app.use(helmet());
 app.use(logger);
-app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use('/api/v1/payments/webhook', express.raw({ type: 'application/json' }));
 
+app.use(express.json());
 //  for cron job
 app.get('/', (_, res) => {
   res.status(200).json({ status: 'success' });

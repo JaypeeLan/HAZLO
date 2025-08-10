@@ -14,6 +14,7 @@ import {
   // sendEmailVerification,
   // verifyEmail,
 } from '../controllers/verify.controller';
+import { authenticateToken, authorize } from '../middlewares/auth.middleware';
 
 const router = Router();
 
@@ -30,6 +31,11 @@ router.post('/register', register);
 router.post('/login', login);
 router.post('/reset-password', resetPassword);
 router.post('/verify-reset-token', verifyResetToken);
-router.post('/delete-user', deleteUser);
+router.post(
+  '/delete-user',
+  authenticateToken,
+  authorize(['admin']),
+  deleteUser
+);
 
 export default router;

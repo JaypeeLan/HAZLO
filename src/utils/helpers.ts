@@ -1,5 +1,4 @@
 import jwt from 'jsonwebtoken';
-import { UserInterface } from '../types/index.types';
 import { IUser } from '../models/user';
 import { ENV } from '../config/env';
 
@@ -23,34 +22,27 @@ export const generateVerificationToken = (): string => {
   return Math.floor(100000 + Math.random() * 900000).toString();
 };
 
-export const formatUser = (user: UserInterface) => {
-  const {
-    _id,
-    email,
-    phone,
-    name,
-    username,
-    role,
-    isVerified,
-    token,
-    profileImage,
-    address,
-    notification,
-  } = user;
+export function formatUser(user: IUser, token?: string) {
+  const plainUser =
+    typeof (user as IUser).toObject === 'function'
+      ? (user as IUser).toObject()
+      : user;
 
-  const formatted: Record<string, any> = {
-    id: _id,
-    ...(email && { email }),
-    ...(phone && { phone }),
-    ...(name && { name }),
-    ...(username && { username }),
-    ...(role && { role }),
-    ...(typeof isVerified === 'boolean' && { isVerified }),
+  const safeUser = {
+    id: plainUser._id,
+    email: plainUser.email,
+    phone: plainUser.phone,
+    name: plainUser.name,
+    username: plainUser.username,
+    profileImage: plainUser.profileImage,
+    address: plainUser.address,
+    role: plainUser.role,
+    isVerified: plainUser.isVerified,
+    notification: plainUser.notification,
+    createdAt: plainUser.createdAt,
+    updatedAt: plainUser.updatedAt,
     ...(token && { token }),
-    ...(notification && { notification }),
-    ...(profileImage && { profileImage }),
-    ...(address && { address }),
   };
 
-  return formatted;
-};
+  return safeUser;
+}

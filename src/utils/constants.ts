@@ -6,7 +6,7 @@ export enum ResponseMessages {
   INVALID_PASSWORD = 'The password you provided must be at least 6 characters and contain both letters and numbers.',
   MISSING_FIELD = 'One or more required fields are missing or empty.',
   INVALID_OTP = 'The OTP you provided is invalid or has expired. Please try again.',
-  INVALID_CREDENTIALS = 'Invalid email, phone, or password provided.',
+  INVALID_CREDENTIALS = 'Invalid email or password provided.',
   INVALID_PROFILE_DATA = 'Invalid profile data provided. Please ensure all required fields are valid.',
   INVALID_RESET_TOKEN = 'The password reset token is invalid or has expired.',
 
@@ -59,6 +59,11 @@ export enum ResponseMessages {
   //payment
   PAYMENT_SUCCESS = 'Payment successful',
   PAYMENT_FAILED = 'Payment failed. Please try again.',
+
+  // admin
+  ADMIN_EXISTS = 'Admin already exists',
+  ADMIN_CREATE_ERROR = 'Failed to create admin account.',
+  ADMIN_CREATE_SUCCESS = 'Admin created successfully',
 }
 
 export enum LogMessages {
