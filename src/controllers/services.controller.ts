@@ -4,16 +4,23 @@ import { sendResponse } from '../utils/sendResponse';
 import { AppError } from '../middlewares/errorHandler';
 
 export const getPriceList = async (
-  _: Request,
+  req: Request,
   res: Response,
   next: NextFunction
 ) => {
   try {
-    const services = await PriceListModel.find();
+    const { service } = req.query;
+
+    const filter: Record<string, any> = {};
+    if (service) {
+      filter.service = service.toString().toLowerCase();
+    }
+
+    const services = await PriceListModel.find(filter);
 
     sendResponse({
       res,
-      statusCode: 201,
+      statusCode: 200,
       status: 'success',
       message: 'Services fetched',
       data: services,
