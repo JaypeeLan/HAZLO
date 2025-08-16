@@ -37,6 +37,7 @@ const userSchema = new Schema<IUser>(
       enum: ['user', 'admin'],
       default: 'user',
     },
+    deviceToken: { type: String, default: null },
     isVerified: {
       type: Boolean,
       default: false,
