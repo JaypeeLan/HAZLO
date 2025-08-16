@@ -1,15 +1,7 @@
 import { NextFunction, Request, Response } from 'express';
-import * as admin from 'firebase-admin';
-import { getMessaging } from 'firebase-admin/messaging';
 import { sendResponse } from '../utils/sendResponse';
 import { AppError } from '../middlewares/errorHandler';
-
-if (!admin.apps.length) {
-  admin.initializeApp({
-    credential: admin.credential.applicationDefault(),
-    projectId: '',
-  });
-}
+import { messaging } from '../services/firebase/admin';
 
 export const sendPushNotification = async (
   req: Request,
@@ -17,33 +9,27 @@ export const sendPushNotification = async (
   next: NextFunction
 ) => {
   try {
-    const { fcmToken, title, body } = req.body;
+    const { token, title, body } = req.body;
 
-    if (!fcmToken || !title || !body) {
-      throw new AppError('Missing required fields: fcmToken, title, body', 400);
+    if (!token || !title || !body) {
+      throw new AppError('Missing required fields: token, title, body', 400);
     }
 
     const message = {
-      notification: {
-        title,
-        body,
-      },
-      token: fcmToken,
+      notification: { title, body },
+      token: token,
     };
 
-    const response = await getMessaging().send(message);
+    const response = await messaging.send(message);
+
     sendResponse({
       res,
       statusCode: 200,
       status: 'success',
       message: 'Notification sent successfully',
-      data: { token: fcmToken, messageId: response },
+      data: { token: token, messageId: response },
     });
   } catch (error) {
-    next(
-      error instanceof AppError
-        ? error
-        : new AppError('Failed to send notification', 500)
-    );
+    next(error instanceof AppError ? error : new AppError(error, 500));
   }
 };

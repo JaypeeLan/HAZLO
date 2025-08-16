@@ -12,14 +12,13 @@ import {
 } from '../utils/helpers';
 import UserModel from '../models/user';
 
-// Register function
 export const register = async (
   req: Request,
   res: Response,
   next: NextFunction
 ): Promise<void> => {
   try {
-    const { email, phone, password } = req.body;
+    const { email, phone, password, deviceToken } = req.body;
 
     if (!email || !phone || !password) {
       throw new AppError(ResponseMessages.MISSING_FIELD, 400);
@@ -45,6 +44,7 @@ export const register = async (
       address: null,
       isVerified: false,
       verificationToken,
+      deviceToken,
     });
 
     // Send email verification
@@ -56,11 +56,6 @@ export const register = async (
       html: `<p>Your verification token is:</p><strong>${verificationToken}</strong>`,
     };
     await sendgridClient.send(msg);
-
-    // Send phone verification
-    // await twilioClient.verify.v2
-    //   .services(twilioServiceSid)
-    //   .verifications.create({ to: phone, channel: 'sms' });
 
     const token = generateJwtToken(createdUser._id as string);
 
@@ -81,14 +76,13 @@ export const register = async (
   }
 };
 
-// Login function
 export const login = async (
   req: Request,
   res: Response,
   next: NextFunction
 ): Promise<void> => {
   try {
-    const { email, password } = req.body;
+    const { email, password, deviceToken } = req.body;
 
     if (!email || !password) {
       throw new AppError(ResponseMessages.INVALID_CREDENTIALS, 400);
@@ -106,6 +100,12 @@ export const login = async (
 
     if (!user.isVerified) {
       throw new AppError(ResponseMessages.UNVERIFIED_ACCOUNT, 403);
+    }
+
+    // ✅ Update FCM token if provided
+    if (deviceToken) {
+      user.deviceToken = deviceToken;
+      await user.save();
     }
 
     const token = generateJwtToken(user._id as string);
@@ -185,7 +185,6 @@ export const resetPassword = async (
   }
 };
 
-// Verify reset token and update password
 export const verifyResetToken = async (
   req: Request,
   res: Response,
@@ -229,8 +228,6 @@ export const verifyResetToken = async (
   }
 };
 
-// delete user
-
 export const deleteUser = async (
   req: Request,
   res: Response,
@@ -266,6 +263,43 @@ export const deleteUser = async (
       error instanceof AppError
         ? error
         : new AppError('Failed to delete user', 500)
+    );
+  }
+};
+
+export const logout = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { email, deviceToken } = req.body;
+
+    if (!email) {
+      throw new AppError('Email is required to logout', 400);
+    }
+
+    const user = await UserModel.findOne({ email });
+    if (!user) {
+      throw new AppError('User not found', 404);
+    }
+
+    if (deviceToken && user.deviceToken === deviceToken) {
+      user.deviceToken = null;
+      user.token = null;
+      await user.save();
+    }
+
+    sendResponse({
+      res,
+      statusCode: 200,
+      status: 'success',
+      message: 'User logged out successfully',
+      data: null,
+    });
+  } catch (error) {
+    next(
+      error instanceof AppError ? error : new AppError('Logout failed', 500)
     );
   }
 };

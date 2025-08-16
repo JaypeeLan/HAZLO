@@ -80,3 +80,9 @@ export interface PriceListInterface {
   createdAt: Date;
   updatedAt: Date;
 }
+
+export interface LocationInterface {
+  _id?: string;
+  location: string;
+  deliveryFee: number;
+}

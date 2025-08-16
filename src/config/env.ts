@@ -19,4 +19,5 @@ export const ENV = {
   PAYSTACK_KEY: process.env.PAYSTACK_KEY_TEST,
   NGROK_KEY: process.env.NGROK_URL,
   UPLOAD_FILE_KEY: process.env.UPLOAD_FILE_KEY,
+  FIREBASE_PROJECT_ID: process.env.FIREBASE_PROJECT_ID,
 };
