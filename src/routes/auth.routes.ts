@@ -2,6 +2,7 @@ import { Router } from 'express';
 import {
   deleteUser,
   login,
+  logout,
   register,
   resetPassword,
   verifyResetToken,
@@ -29,6 +30,7 @@ router.post('/verify-email', verifyEmail);
 // Authentication Routes
 router.post('/register', register);
 router.post('/login', login);
+router.post('/logout', logout);
 router.post('/reset-password', resetPassword);
 router.post('/verify-reset-token', verifyResetToken);
 router.post(
