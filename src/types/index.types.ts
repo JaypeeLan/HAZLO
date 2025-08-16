@@ -13,6 +13,7 @@ export interface UserInterface {
   role: 'user' | 'admin';
   token?: string;
   isVerified: boolean;
+  deviceToken?: string;
   verificationToken?: string;
   resetToken?: string;
   resetTokenExpires?: Date;

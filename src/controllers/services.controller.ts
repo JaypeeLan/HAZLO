@@ -11,6 +11,13 @@ export const getPriceList = async (
   try {
     const { service } = req.query;
 
+    if (
+      service &&
+      !['gas', 'laundry'].includes(service.toString().toLowerCase())
+    ) {
+      throw new AppError('Invalid service type', 400);
+    }
+
     const filter: Record<string, any> = {};
     if (service) {
       filter.service = service.toString().toLowerCase();
