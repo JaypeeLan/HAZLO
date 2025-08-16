@@ -41,6 +41,7 @@ export function formatUser(user: IUser, token?: string) {
     notification: plainUser.notification,
     createdAt: plainUser.createdAt,
     updatedAt: plainUser.updatedAt,
+    deviceToken: plainUser.deviceToken,
     ...(token && { token }),
   };
 
