@@ -110,6 +110,44 @@ export const getAllOrders = async (
   }
 };
 
+export const getAllUsers = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { page = 1, limit = 10 } = req.query;
+
+    const skip = (Number(page) - 1) * Number(limit);
+
+    const [users, total] = await Promise.all([
+      UserModel.find({ role: 'user' })
+        .skip(skip)
+        .limit(Number(limit))
+        .sort({ createdAt: -1 }),
+      UserModel.countDocuments({ role: 'user' }),
+    ]);
+
+    sendResponse({
+      res,
+      statusCode: 200,
+      status: 'success',
+      message: ResponseMessages.USERS_FETCHED,
+      data: {
+        users,
+        pagination: {
+          total,
+          page: Number(page),
+          limit: Number(limit),
+          totalPages: Math.ceil(total / Number(limit)),
+        },
+      },
+    });
+  } catch (error) {
+    next(new AppError(error, 500));
+  }
+};
+
 export const createPriceList = async (
   req: Request,
   res: Response,

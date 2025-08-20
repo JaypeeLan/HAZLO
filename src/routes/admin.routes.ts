@@ -4,6 +4,7 @@ import {
   createAdmin,
   createPriceList,
   getAllOrders,
+  getAllUsers,
   updatePriceList,
 } from '../controllers/admin.controller';
 
@@ -21,6 +22,7 @@ router.get(
   authorize(['admin']),
   getAllOrders
 );
+router.get('/get-users', authenticateToken, authorize(['admin']), getAllUsers);
 
 router.post(
   '/create-price-list',

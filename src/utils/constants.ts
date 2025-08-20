@@ -36,6 +36,7 @@ export enum ResponseMessages {
   NO_TOKEN = 'Authorization token is missing. Please log in to access this resource.',
   INVALID_TOKEN = 'Invalid or expired token. Please log in again.',
   WRONG_PASSWORD = 'Wrong password. Please try again',
+  USERS_FETCHED = 'Users Fetched!',
 
   // Password reset messages
   RESET_TOKEN_SENT = 'A password reset token has been sent to your email or phone.',
