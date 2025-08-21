@@ -10,22 +10,18 @@ const userSchema = new Schema<IUser>(
       required: true,
       unique: true,
     },
-    phone: {
+    countryCode: {
       type: String,
-      // required: true,
-      unique: true,
+      default: null,
     },
+    phone: { type: String, unique: true },
     password: {
       type: String,
       required: true,
       select: false,
     },
-
-    name: {
-      type: String,
-    },
+    name: { type: String },
     username: { type: String },
-
     profileImage: {
       type: String,
     },
@@ -61,16 +57,17 @@ const userSchema = new Schema<IUser>(
       type: Boolean,
       default: true,
     },
-    createdAt: {
-      type: Date,
-      default: Date.now,
-      select: false,
-    },
-    updatedAt: {
-      type: Date,
-      default: Date.now,
-      select: false,
-    },
+
+    // createdAt: {
+    //   type: Date,
+    //   default: Date.now,
+    //   select: false,
+    // },
+    // updatedAt: {
+    //   type: Date,
+    //   default: Date.now,
+    //   select: false,
+    // },
   },
   {
     timestamps: true,
