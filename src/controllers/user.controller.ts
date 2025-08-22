@@ -45,28 +45,31 @@ export const updateProfile = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const { name, address, profileImage, phone, email } = req.body;
+    const { name, address, phone, email, username, deviceToken, countryCode } =
+      req.body;
     const userId = req.user?.id;
 
     if (!userId) {
       throw new AppError(ResponseMessages.UNAUTHORIZED, 401);
     }
 
-    if (!name && !address && !profileImage && !phone && !email) {
+    const updateData = {
+      ...(name && { name }),
+      ...(address && { address }),
+      ...(username && { username }),
+      ...(deviceToken && { deviceToken }),
+      ...(countryCode && { countryCode }),
+      ...(phone && { phone }),
+      ...(email && { email }),
+    };
+
+    if (Object.keys(updateData).length === 0) {
       throw new AppError(ResponseMessages.INVALID_PROFILE_DATA, 400);
     }
 
-    const updatedUser = await UserModel.findByIdAndUpdate(
-      userId,
-      {
-        ...(name && { name }),
-        ...(address && { address }),
-        ...(profileImage && { profileImage }),
-        ...(phone && { phone }),
-        ...(email && { email }),
-      },
-      { new: true }
-    );
+    const updatedUser = await UserModel.findByIdAndUpdate(userId, updateData, {
+      new: true,
+    });
 
     if (!updatedUser) {
       throw new AppError(ResponseMessages.USER_NOT_FOUND, 404);
