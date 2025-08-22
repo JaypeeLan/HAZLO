@@ -42,6 +42,7 @@ export const createAdmin = async (
       profileImage: null,
       username: null,
       name: null,
+      role: 'admin',
       address: null,
       isVerified: true,
       verificationToken,
