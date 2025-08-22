@@ -42,6 +42,7 @@ export function formatUser(user: IUser, token?: string) {
     createdAt: plainUser.createdAt,
     updatedAt: plainUser.updatedAt,
     deviceToken: plainUser.deviceToken,
+    countryCode: plainUser.countryCode,
     ...(token && { token }),
   };
 

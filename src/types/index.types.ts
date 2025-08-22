@@ -20,6 +20,7 @@ export interface UserInterface {
   notification?: boolean;
   createdAt: Date;
   updatedAt: Date;
+  countryCode: string;
 }
 
 export type OrderStatus =

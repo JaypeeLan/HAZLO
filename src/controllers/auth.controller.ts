@@ -18,7 +18,7 @@ export const register = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const { email, phone, password, deviceToken } = req.body;
+    const { email, phone, password, deviceToken, countryCode } = req.body;
 
     if (!email || !phone || !password) {
       throw new AppError(ResponseMessages.MISSING_FIELD, 400);
@@ -45,6 +45,7 @@ export const register = async (
       isVerified: false,
       verificationToken,
       deviceToken,
+      countryCode,
     });
 
     // Send email verification
