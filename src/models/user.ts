@@ -10,10 +10,7 @@ const userSchema = new Schema<IUser>(
       required: true,
       unique: true,
     },
-    countryCode: {
-      type: String,
-      default: null,
-    },
+    countryCode: { type: String, default: '+234' },
     phone: { type: String, unique: true },
     password: {
       type: String,
@@ -22,41 +19,15 @@ const userSchema = new Schema<IUser>(
     },
     name: { type: String },
     username: { type: String },
-    profileImage: {
-      type: String,
-    },
-    address: {
-      type: String,
-    },
-    role: {
-      type: String,
-      enum: ['user', 'admin'],
-      default: 'user',
-    },
+    profileImage: { type: String },
+    address: { type: String },
+    role: { type: String, enum: ['user', 'admin'], default: 'user' },
     deviceToken: { type: String, default: null },
-    isVerified: {
-      type: Boolean,
-      default: false,
-    },
-    verificationToken: {
-      type: String,
-      default: null,
-      select: false,
-    },
-    resetToken: {
-      type: String,
-      default: null,
-      select: false,
-    },
-    resetTokenExpires: {
-      type: Date,
-      default: null,
-      select: false,
-    },
-    notification: {
-      type: Boolean,
-      default: true,
-    },
+    isVerified: { type: Boolean, default: false },
+    verificationToken: { type: String, default: null, select: false },
+    resetToken: { type: String, default: null, select: false },
+    resetTokenExpires: { type: Date, default: null, select: false },
+    notification: { type: Boolean, default: true },
 
     // createdAt: {
     //   type: Date,
