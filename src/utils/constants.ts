@@ -28,8 +28,8 @@ export enum ResponseMessages {
   // Authentication messages
   USER_EXISTS = 'A user with this email or phone number already exists.',
   USER_NOT_FOUND = 'This user does not exist. Please check your credentials or register.',
-  UNVERIFIED_ACCOUNT = 'Your account is not verified. Please verify your email or phone.',
-  REGISTRATION_SUCCESS = 'Registration successful. Please verify your email and phone to continue.',
+  UNVERIFIED_ACCOUNT = 'Your account is not verified. Please check your email.',
+  REGISTRATION_SUCCESS = 'Registration successful. Please verify your email to continue.',
   REGISTRATION_ERROR = 'Error during registration. Please try again later.',
   LOGIN_SUCCESS = 'Login successful.',
   LOGIN_ERROR = 'Error during login. Please try again later.',
