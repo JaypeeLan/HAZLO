@@ -9,15 +9,15 @@ export const sendPushNotification = async (
   next: NextFunction
 ) => {
   try {
-    const { token, title, body } = req.body;
+    const { deviceToken, title, body } = req.body;
 
-    if (!token || !title || !body) {
+    if (!deviceToken || !title || !body) {
       throw new AppError('Missing required fields: token, title, body', 400);
     }
 
     const message = {
       notification: { title, body },
-      token: token,
+      token: deviceToken,
     };
 
     const response = await messaging.send(message);
@@ -27,7 +27,7 @@ export const sendPushNotification = async (
       statusCode: 200,
       status: 'success',
       message: 'Notification sent successfully',
-      data: { token: token, messageId: response },
+      data: { token: deviceToken, messageId: response },
     });
   } catch (error) {
     next(error instanceof AppError ? error : new AppError(error, 500));

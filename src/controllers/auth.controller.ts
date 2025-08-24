@@ -100,10 +100,25 @@ export const login = async (
     }
 
     if (!user.isVerified) {
+      const verificationToken = generateResetToken();
+      // Send email verification
+      const msg = {
+        to: email,
+        from: sendgridFromEmail,
+        subject: 'Verify Your Email Address',
+        text: `Your verification token is: ${verificationToken}`,
+        html: `<p>Your verification token is:</p><strong>${verificationToken}</strong>`,
+      };
+      await sendgridClient.send(msg);
+
+      user.verificationToken = verificationToken;
+
+      user.save();
+
       throw new AppError(ResponseMessages.UNVERIFIED_ACCOUNT, 403);
     }
 
-    // ✅ Update FCM token if provided
+    // update device token if provided
     if (deviceToken) {
       user.deviceToken = deviceToken;
       await user.save();
