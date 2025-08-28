@@ -11,7 +11,105 @@ import { sendResponse } from '../utils/sendResponse';
 import OrderModel from '../models/order';
 import bcrypt from 'bcrypt';
 import PriceListModel from '../models/priceList';
-import { GasPrice, LaundryItem } from '../types/index.types';
+import { PriceItem } from '../types/index.types';
+import TransactionModel from '../models/transaction';
+
+export const getAdminDashboardAnalytics = async (
+  _: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const userStats = await UserModel.aggregate([
+      {
+        $facet: {
+          totalUsers: [{ $count: 'count' }],
+          verifiedUsers: [
+            { $match: { isVerified: true } },
+            { $count: 'count' },
+          ],
+        },
+      },
+    ]);
+
+    const totalUsers = userStats[0].totalUsers[0]?.count || 0;
+    const verifiedUsers = userStats[0].verifiedUsers[0]?.count || 0;
+
+    // Aggregate order analytics
+    const orderStats = await OrderModel.aggregate([
+      {
+        $facet: {
+          totalOrders: [{ $count: 'count' }],
+          completedOrders: [
+            { $match: { orderStatus: 'completed' } },
+            { $count: 'count' },
+          ],
+          pendingOrders: [
+            { $match: { orderStatus: 'pending' } },
+            { $count: 'count' },
+          ],
+          totalRevenue: [
+            { $match: { orderStatus: 'completed' } },
+            { $group: { _id: null, total: { $sum: '$total' } } },
+          ],
+        },
+      },
+    ]);
+
+    const totalOrders = orderStats[0].totalOrders[0]?.count || 0;
+    const completedOrders = orderStats[0].completedOrders[0]?.count || 0;
+    const pendingOrders = orderStats[0].pendingOrders[0]?.count || 0;
+    const totalRevenue = orderStats[0].totalRevenue[0]?.total || 0;
+
+    // Aggregate transaction status breakdown
+    const transactionStats = await TransactionModel.aggregate([
+      {
+        $group: {
+          _id: '$status',
+          count: { $sum: 1 },
+        },
+      },
+    ]);
+
+    const transactionStatusBreakdown = transactionStats.reduce(
+      (acc, { _id, count }) => ({ ...acc, [_id]: count }),
+      { pending: 0, success: 0, failed: 0, refund_pending: 0, refunded: 0 }
+    );
+
+    // Prepare response data
+    const analytics = {
+      users: {
+        total: totalUsers,
+        verified: verifiedUsers,
+        unverified: totalUsers - verifiedUsers,
+      },
+      orders: {
+        total: totalOrders,
+        completed: completedOrders,
+        pending: pendingOrders,
+        otherStatuses: totalOrders - completedOrders - pendingOrders,
+      },
+      revenue: {
+        totalCompleted: totalRevenue,
+      },
+      transactions: transactionStatusBreakdown,
+    };
+
+    sendResponse({
+      res,
+      statusCode: 200,
+      status: 'success',
+      message: 'Admin dashboard analytics retrieved successfully',
+      data: analytics,
+    });
+  } catch (error) {
+    next(
+      error instanceof AppError
+        ? error
+        : new AppError('Failed to retrieve analytics', 500)
+    );
+  }
+};
 
 export const createAdmin = async (
   req: Request,
@@ -149,111 +247,6 @@ export const getAllUsers = async (
   }
 };
 
-export const createPriceList = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-): Promise<void> => {
-  try {
-    const { service, gasPrices, laundryPrices } = req.body;
-
-    if (!service) {
-      throw new AppError('Service type is required', 400);
-    }
-
-    const existing = await PriceListModel.findOne({ service });
-    if (existing) {
-      throw new AppError(`${service} price list already exists`, 400);
-    }
-
-    const newPriceList = await PriceListModel.create({
-      service,
-      gasPrices: gasPrices || [],
-      laundryPrices: laundryPrices || [],
-    });
-
-    sendResponse({
-      res,
-      statusCode: 201,
-      status: 'success',
-      message: 'Price list created successfully',
-      data: newPriceList,
-    });
-  } catch (error) {
-    next(
-      error instanceof AppError
-        ? error
-        : new AppError('Failed to create price list', 500)
-    );
-  }
-};
-
-export const updatePriceList = async (
-  req: Request<
-    any,
-    any,
-    {
-      service: 'gas' | 'laundry';
-      gasPrices?: GasPrice[];
-      laundryPrices?: LaundryItem[];
-    }
-  >,
-  res: Response,
-  next: NextFunction
-): Promise<void> => {
-  try {
-    const { service, gasPrices, laundryPrices } = req.body;
-
-    if (!service) {
-      throw new AppError('Service type is required', 400);
-    }
-
-    const priceList = await PriceListModel.findOne({ service });
-    if (!priceList) {
-      throw new AppError('Price list not found', 404);
-    }
-
-    if (service === 'gas' && Array.isArray(gasPrices)) {
-      gasPrices.forEach((updateItem) => {
-        const target = priceList.gasPrices.find(
-          (g) => g.size === updateItem.size
-        );
-        if (target) {
-          if (updateItem.orderPrice !== undefined)
-            target.orderPrice = updateItem.orderPrice;
-          if (updateItem.refillPrice !== undefined)
-            target.refillPrice = updateItem.refillPrice;
-        }
-      });
-    }
-
-    if (service === 'laundry' && Array.isArray(laundryPrices)) {
-      laundryPrices.forEach((updateItem) => {
-        const target = priceList.laundryPrices.find(
-          (l) => l.itemName === updateItem.itemName
-        );
-        if (target) {
-          if (updateItem.price !== undefined) target.price = updateItem.price;
-        }
-      });
-    }
-
-    await priceList.save();
-
-    sendResponse({
-      res,
-      statusCode: 200,
-      status: 'success',
-      message: 'Price list updated successfully',
-      data: priceList,
-    });
-  } catch (error) {
-    next(
-      error instanceof AppError ? error : new AppError('Update failed', 500)
-    );
-  }
-};
-
 export const updateOrderStatus = async (
   req: Request,
   res: Response,
@@ -282,5 +275,148 @@ export const updateOrderStatus = async (
     });
   } catch (error) {
     next(error instanceof AppError ? error : new AppError(error, 500));
+  }
+};
+
+export const createPriceList = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const { prices } = req.body;
+
+    if (!prices || !Array.isArray(prices)) {
+      throw new AppError('Prices array is required', 400);
+    }
+
+    // Validate that all price items have required fields
+    const validTypes = ['gas_order', 'gas_refill', 'laundry'];
+    for (const price of prices) {
+      if (
+        !price.item ||
+        !validTypes.includes(price.type) ||
+        price.price == null
+      ) {
+        throw new AppError('Invalid price item format', 400);
+      }
+    }
+
+    const newPriceList = await PriceListModel.create({
+      prices,
+    });
+
+    sendResponse({
+      res,
+      statusCode: 201,
+      status: 'success',
+      message: 'Price list created successfully',
+      data: newPriceList,
+    });
+  } catch (error) {
+    next(
+      error instanceof AppError
+        ? error
+        : new AppError('Failed to create price list', 500)
+    );
+  }
+};
+
+export const updatePriceList = async (
+  req: Request<any, any, { prices?: PriceItem[] }>,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const { prices } = req.body;
+
+    if (!prices || !Array.isArray(prices)) {
+      throw new AppError('Prices array is required', 400);
+    }
+
+    const priceList = await PriceListModel.findOne();
+    if (!priceList) {
+      throw new AppError('Price list not found', 404);
+    }
+
+    // Update existing prices or add new ones
+    prices.forEach((updateItem) => {
+      const target = priceList.prices.find(
+        (p) => p.item === updateItem.item && p.type === updateItem.type
+      );
+      if (target) {
+        if (updateItem.price !== undefined) {
+          target.price = updateItem.price;
+        }
+      } else {
+        priceList.prices.push(updateItem);
+      }
+    });
+
+    await priceList.save();
+
+    sendResponse({
+      res,
+      statusCode: 200,
+      status: 'success',
+      message: 'Price list updated successfully',
+      data: priceList,
+    });
+  } catch (error) {
+    next(
+      error instanceof AppError ? error : new AppError('Update failed', 500)
+    );
+  }
+};
+
+export const deletePriceItem = async (
+  req: Request<
+    any,
+    any,
+    { item: string; type: 'gas_order' | 'gas_refill' | 'laundry' }
+  >,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const { item, type } = req.body;
+
+    if (!item || !type) {
+      throw new AppError('Item and type are required', 400);
+    }
+
+    const validTypes = ['gas_order', 'gas_refill', 'laundry'];
+    if (!validTypes.includes(type)) {
+      throw new AppError('Invalid type provided', 400);
+    }
+
+    const priceList = await PriceListModel.findOne();
+    if (!priceList) {
+      throw new AppError('Price list not found', 404);
+    }
+
+    const itemIndex = priceList.prices.findIndex(
+      (p) => p.item === item && p.type === type
+    );
+    if (itemIndex === -1) {
+      throw new AppError('Price item not found', 404);
+    }
+
+    priceList.prices.splice(itemIndex, 1);
+    await priceList.save();
+
+    sendResponse({
+      res,
+      statusCode: 200,
+      status: 'success',
+      message: `Price item ${item} (${type}) deleted successfully`,
+      data: priceList,
+    });
+  } catch (error) {
+    next(
+      error instanceof AppError
+        ? error
+        : new AppError('Failed to delete price item', 500)
+    );
   }
 };
