@@ -18,18 +18,36 @@ export const sendPushNotification = async (
     const message = {
       notification: { title, body },
       token: deviceToken,
+      android: {
+        priority: 'high' as const,
+        notification: {
+          sound: 'default',
+          channelId: 'default',
+        },
+      },
+      apns: {
+        payload: {
+          aps: {
+            sound: 'default',
+          },
+        },
+      },
     };
 
-    const response = await messaging.send(message);
-
-    sendResponse({
-      res,
-      statusCode: 200,
-      status: 'success',
-      message: 'Notification sent successfully',
-      data: { token: deviceToken, messageId: response },
-    });
+    try {
+      const response = await messaging.send(message);
+      sendResponse({
+        res,
+        statusCode: 200,
+        status: 'success',
+        message: 'Notification sent successfully',
+        data: { token: deviceToken, messageId: response },
+      });
+    } catch (error) {
+      console.error('FCM error:', error);
+      next(new AppError(error.message, 500));
+    }
   } catch (error) {
-    next(error instanceof AppError ? error : new AppError(error, 500));
+    next(new AppError(error, 500));
   }
 };

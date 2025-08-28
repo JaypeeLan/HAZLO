@@ -63,21 +63,14 @@ export interface IOrder {
   pickupPreference?: 'now' | 'schedule';
 }
 
-export interface GasPrice {
-  size: number; // in kg
-  orderPrice: number;
-  refillPrice: number;
-}
-
-export interface LaundryItem {
-  itemName: string;
+export interface PriceItem {
+  item: string;
   price: number;
+  type: 'gas_order' | 'gas_refill' | 'laundry';
 }
 
 export interface PriceListInterface {
-  service: 'gas' | 'laundry';
-  gasPrices?: GasPrice[];
-  laundryPrices?: LaundryItem[];
+  prices: PriceItem[];
   createdAt: Date;
   updatedAt: Date;
 }
