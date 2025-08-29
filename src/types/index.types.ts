@@ -64,6 +64,7 @@ export interface IOrder {
 }
 
 export interface PriceItem {
+  id: string;
   item: string;
   price: number;
   type: 'gas_order' | 'gas_refill' | 'laundry';
