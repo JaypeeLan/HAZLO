@@ -5,6 +5,7 @@ export type PriceListI = PriceListInterface & Document;
 
 const priceItemSchema = new Schema(
   {
+    id: { type: String, required: true },
     item: { type: String, required: true },
     price: { type: Number, required: true, default: 0 },
     type: {
@@ -20,8 +21,12 @@ const priceListSchema = new Schema<PriceListI>(
   {
     prices: [priceItemSchema],
   },
-  { timestamps: true }
+  { timestamps: true, toJSON: { virtuals: true }, toObject: { virtuals: true } }
 );
+
+priceListSchema.virtual('id').get(function () {
+  return this._id?.toString();
+});
 
 const PriceListModel = model<PriceListI>('PriceList', priceListSchema);
 

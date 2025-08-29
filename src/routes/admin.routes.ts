@@ -2,12 +2,9 @@ import { Router } from 'express';
 import { authenticateToken, authorize } from '../middlewares/auth.middleware';
 import {
   createAdmin,
-  createPriceList,
-  deletePriceItem,
   getAdminDashboardAnalytics,
   getAllOrders,
   getAllUsers,
-  updatePriceList,
 } from '../controllers/admin.controller';
 
 const router = Router();
@@ -31,25 +28,6 @@ router.get(
   authenticateToken,
   authorize(['admin']),
   getAdminDashboardAnalytics
-);
-
-router.post(
-  '/create-price-list',
-  authenticateToken,
-  authorize(['admin']),
-  createPriceList
-);
-router.patch(
-  '/update-prices',
-  authenticateToken,
-  authorize(['admin']),
-  updatePriceList
-);
-router.delete(
-  '/delete-price-item',
-  authenticateToken,
-  authorize(['admin']),
-  deletePriceItem
 );
 
 export default router;
