@@ -2,7 +2,7 @@ import { NextFunction, Request, Response } from 'express';
 import { AppError } from '../middlewares/errorHandler';
 import UserModel from '../models/user';
 import { ResponseMessages } from '../utils/constants';
-import { sendgridFromEmail, sendgridClient } from '../utils/sendGrid';
+
 import { sendResponse } from '../utils/sendResponse';
 import { twilioClient, twilioServiceSid } from '../utils/twilio';
 import {
@@ -10,8 +10,8 @@ import {
   generateVerificationToken,
   updateUserVerification,
 } from '../utils/helpers';
+import { sendEmail } from '../services/mail';
 
-// Send OTP function
 export const sendOtp = async (
   req: Request,
   res: Response,
@@ -44,7 +44,6 @@ export const sendOtp = async (
   }
 };
 
-// Verify OTP function
 export const verifyOtp = async (
   req: Request,
   res: Response,
@@ -88,7 +87,6 @@ export const verifyOtp = async (
   }
 };
 
-// Send email verification function
 export const sendEmailVerification = async (
   req: Request,
   res: Response,
@@ -104,15 +102,19 @@ export const sendEmailVerification = async (
     const token = generateVerificationToken();
     await UserModel.create({ email, verificationToken: token });
 
-    const msg = {
+    await sendEmail({
       to: email,
-      from: sendgridFromEmail,
-      subject: 'Verify Your Email Address',
-      text: `Your verification token is: ${token}`,
-      html: `<p>Your verification token is:</p><strong>${token}</strong>`,
-    };
-
-    await sendgridClient.send(msg);
+      subject: 'Welcome! Please Verify Your Email Address',
+      text: `Hello,\n\nThank you for signing up with us! To complete your account setup, please verify your email address using the following token:\n\nVerification Token: ${token}\n\nEnter this token in the verification section of our app or website to activate your account. This token is valid for 24 hours.\n\nIf you did not create this account, please ignore this email.\n\nBest regards,\nThe Team`,
+      html: `
+        <h2>Welcome to Our Platform!</h2>
+        <p>Thank you for signing up with us! To complete your account setup, please verify your email address using the token below:</p>
+        <p><strong>Verification Token: ${token}</strong></p>
+        <p>Enter this token in the verification section of our app or website to activate your account. This token is valid for 24 hours.</p>
+        <p>If you did not create this account, please ignore this email.</p>
+        <p>Best regards,<br>The Team</p>
+      `,
+    });
 
     sendResponse({
       res,
@@ -127,7 +129,6 @@ export const sendEmailVerification = async (
   }
 };
 
-// Verify email function
 export const verifyEmail = async (
   req: Request,
   res: Response,
