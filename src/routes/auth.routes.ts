@@ -9,9 +9,9 @@ import {
 } from '../controllers/auth.controller';
 
 import {
-  sendOtp,
+  // sendOtp,
   verifyEmail,
-  verifyOtp,
+  // verifyOtp,
   // sendEmailVerification,
   // verifyEmail,
 } from '../controllers/verify.controller';
@@ -20,8 +20,8 @@ import { authenticateToken, authorize } from '../middlewares/auth.middleware';
 const router = Router();
 
 // OTP Routes
-router.post('/send-otp', sendOtp);
-router.post('/verify-otp', verifyOtp);
+// router.post('/send-otp', sendOtp);
+// router.post('/verify-otp', verifyOtp);
 
 // Email Verification Routes
 // router.post('/send-email-verification', sendEmailVerification);
