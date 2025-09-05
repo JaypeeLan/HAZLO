@@ -244,7 +244,6 @@ export const getAllUsers = async (
     next(new AppError(error, 500));
   }
 };
-
 export const updateOrderStatus = async (
   req: Request,
   res: Response,
@@ -252,23 +251,23 @@ export const updateOrderStatus = async (
 ) => {
   try {
     const { orderId } = req.params;
-
     const { orderStatus, paymentStatus } = req.body;
 
     const order = await OrderModel.findOneAndUpdate(
       { orderId },
-      {
-        orderStatus,
-        paymentStatus,
-      },
+      { orderStatus, paymentStatus },
       { new: true }
     );
 
+    if (!order) {
+      return next(new AppError(`Order with ID ${orderId} not found`, 404));
+    }
+
     sendResponse({
       res,
-      statusCode: 201,
+      statusCode: 200,
       status: 'success',
-      message: 'Order Updated',
+      message: 'Order updated successfully',
       data: order,
     });
   } catch (error) {
