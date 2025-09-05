@@ -10,7 +10,9 @@ export const ENV = {
   MONGO_URI:
     process.env.NODE_ENV === 'development'
       ? process.env.MONGODB_URI_TEST
-      : process.env.HAZLO_MONGO_URI,
+      : process.env.NODE_ENV === 'staging'
+        ? process.env.STAGING_MONGO_URI
+        : process.env.HAZLO_MONGO_URI,
   // TWILIO_SID: process.env.TWILIO_SID_TEST,
   // TWILIO_AUTH_TOKEN: process.env.TWILIO_AUTH_TOKEN_TEST,
   // TWILIO_SMS_VERIFY_SERVICE: process.env.TWILIO_SMS_VERIFY_SERVICE_TEST,
