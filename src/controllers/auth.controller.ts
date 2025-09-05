@@ -2,7 +2,6 @@ import { NextFunction, Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
 import { AppError } from '../middlewares/errorHandler';
 import { ResponseMessages } from '../utils/constants';
-import { sendgridFromEmail, sendgridClient } from '../utils/sendGrid';
 import { sendResponse } from '../utils/sendResponse';
 import { twilioClient, twilioServiceSid } from '../utils/twilio';
 import {
@@ -11,6 +10,7 @@ import {
   formatUser,
 } from '../utils/helpers';
 import UserModel from '../models/user';
+import { sendEmail } from '../services/mail';
 
 export const register = async (
   req: Request,
@@ -48,15 +48,19 @@ export const register = async (
       countryCode,
     });
 
-    // Send email verification
-    const msg = {
+    await sendEmail({
       to: email,
-      from: sendgridFromEmail,
-      subject: 'Verify Your Email Address',
-      text: `Your verification token is: ${verificationToken}`,
-      html: `<p>Your verification token is:</p><strong>${verificationToken}</strong>`,
-    };
-    await sendgridClient.send(msg);
+      subject: 'Welcome! Please Verify Your Email Address',
+      text: `Hello,\n\nThank you for registering with us! To complete your account setup, please verify your email address using the following token:\n\nVerification Token: ${verificationToken}\n\nEnter this token in the verification section of our app or website to activate your account. This token is valid for 24 hours.\n\nIf you did not create this account, please ignore this email.\n\nBest regards,\nThe Team`,
+      html: `
+        <h2>Welcome to Hazlo!</h2>
+        <p>Thank you for registering with us! To complete your account setup, please verify your email address using the token below:</p>
+        <p><strong>Verification Token: ${verificationToken}</strong></p>
+        <p>Enter this token in the verification section of our app or website to activate your account. This token is valid for 24 hours.</p>
+        <p>If you did not create this account, please ignore this email.</p>
+        <p>Best regards,<br>The Team</p>
+      `,
+    });
 
     const token = generateJwtToken(createdUser._id as string);
 
@@ -101,24 +105,27 @@ export const login = async (
 
     if (!user.isVerified) {
       const verificationToken = generateResetToken();
-      // Send email verification
-      const msg = {
+
+      await sendEmail({
         to: email,
-        from: sendgridFromEmail,
-        subject: 'Verify Your Email Address',
-        text: `Your verification token is: ${verificationToken}`,
-        html: `<p>Your verification token is:</p><strong>${verificationToken}</strong>`,
-      };
-      await sendgridClient.send(msg);
+        subject: 'Please Verify Your Email Address',
+        text: `Hello,\n\nYour account is not yet verified. Please use the following token to verify your email address:\n\nVerification Token: ${verificationToken}\n\nEnter this token in the verification section of our app or website to activate your account. This token is valid for 24 hours.\n\nIf you did not attempt to log in, please ignore this email.\n\nBest regards,\nThe Team`,
+        html: `
+          <h2>Verify Your Email Address</h2>
+          <p>Your account is not yet verified. Please use the token below to verify your email address:</p>
+          <p><strong>Verification Token: ${verificationToken}</strong></p>
+          <p>Enter this token in the verification section of our app or website to activate your account. This token is valid for 24 hours.</p>
+          <p>If you did not attempt to log in, please ignore this email.</p>
+          <p>Best regards,<br>The Team</p>
+        `,
+      });
 
       user.verificationToken = verificationToken;
-
-      user.save();
+      await user.save();
 
       throw new AppError(ResponseMessages.UNVERIFIED_ACCOUNT, 403);
     }
 
-    // update device token if provided
     if (deviceToken) {
       user.deviceToken = deviceToken;
       await user.save();
@@ -143,7 +150,6 @@ export const login = async (
   }
 };
 
-// Reset password function
 export const resetPassword = async (
   req: Request,
   res: Response,
@@ -163,18 +169,23 @@ export const resetPassword = async (
 
     const resetToken = generateResetToken();
     user.resetToken = resetToken;
-    user.resetTokenExpires = new Date(Date.now() + 3600000); // 1 hour expiry
+    user.resetTokenExpires = new Date(Date.now() + 3600000);
     await user.save();
 
     if (email) {
-      const msg = {
+      await sendEmail({
         to: email,
-        from: sendgridFromEmail,
         subject: 'Password Reset Request',
-        text: `Your password reset token is: ${resetToken}`,
-        html: `<p>Your password reset token is:</p><strong>${resetToken}</strong>`,
-      };
-      await sendgridClient.send(msg);
+        text: `Hello,\n\nWe received a request to reset your account password. Please use the following token to reset your password:\n\nReset Token: ${resetToken}\n\nEnter this token in the password reset section of our app or website. This token is valid for 1 hour.\n\nIf you did not request a password reset, please ignore this email or contact our support team.\n\nBest regards,\nThe Team`,
+        html: `
+          <h2>Password Reset Request</h2>
+          <p>We received a request to reset your account password. Please use the token below to reset your password:</p>
+          <p><strong>Reset Token: ${resetToken}</strong></p>
+          <p>Enter this token in the password reset section of our app or website. This token is valid for 1 hour.</p>
+          <p>If you did not request a password reset, please ignore this email or contact our support team.</p>
+          <p>Best regards,<br>The Team</p>
+        `,
+      });
     } else if (phone) {
       await twilioClient.verify.v2
         .services(twilioServiceSid)
@@ -257,7 +268,7 @@ export const deleteUser = async (
       return next(new AppError('Email is required', 400));
     }
 
-    // Find the user first (await the promise)
+    // Find the user first
     const userToBeDeleted = await UserModel.findOne({ email });
 
     if (!userToBeDeleted) {
