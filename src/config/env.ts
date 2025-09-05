@@ -2,7 +2,6 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-console.log(process.env.NODE_ENV);
 export const ENV = {
   PORT: process.env.PORT,
   ENVIRONMENT: process.env.NODE_ENV,
@@ -11,7 +10,7 @@ export const ENV = {
     process.env.NODE_ENV === 'development'
       ? process.env.MONGODB_URI_TEST
       : process.env.NODE_ENV === 'staging'
-        ? process.env.STAGING_MONGO_URI
+        ? process.env.STAGING_MONGO_URL
         : process.env.HAZLO_MONGO_URI,
   // TWILIO_SID: process.env.TWILIO_SID_TEST,
   // TWILIO_AUTH_TOKEN: process.env.TWILIO_AUTH_TOKEN_TEST,
