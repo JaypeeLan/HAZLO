@@ -3,7 +3,7 @@ import bcrypt from 'bcryptjs';
 import { AppError } from '../middlewares/errorHandler';
 import { ResponseMessages } from '../utils/constants';
 import { sendResponse } from '../utils/sendResponse';
-import { twilioClient, twilioServiceSid } from '../utils/twilio';
+
 import {
   generateResetToken,
   generateJwtToken,
@@ -186,14 +186,14 @@ export const resetPassword = async (
           <p>Best regards,<br>The Team</p>
         `,
       });
-    } else if (phone) {
-      await twilioClient.verify.v2
-        .services(twilioServiceSid)
-        .verifications.create({
-          to: phone,
-          channel: 'sms',
-          customCode: resetToken,
-        });
+      // } else if (phone) {
+      //   await twilioClient.verify.v2
+      //     .services(twilioServiceSid)
+      //     .verifications.create({
+      //       to: phone,
+      //       channel: 'sms',
+      //       customCode: resetToken,
+      //     });
     }
 
     sendResponse({
