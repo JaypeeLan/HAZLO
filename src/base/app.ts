@@ -8,7 +8,7 @@ import {
   notFoundHandler,
 } from '../middlewares/errorHandler';
 import { validateRequests } from '../middlewares/validator';
-import { warmRenderServer } from '../services/cron-job';
+// import { warmRenderServer } from '../services/cron-job';
 
 const app = express();
 
@@ -26,7 +26,7 @@ app.get('/', (_, res) => {
 
 app.use('/api/v1', validateRequests, routes);
 
-warmRenderServer();
+// warmRenderServer();
 
 app.use(notFoundHandler);
 app.use(globalErrorHandler);

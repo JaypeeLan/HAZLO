@@ -1,4 +1,4 @@
-import { Schema } from 'mongoose';
+import { Schema, Types } from 'mongoose';
 
 export interface UserInterface {
   _id?: string;
@@ -80,4 +80,15 @@ export interface LocationInterface {
   _id?: string;
   location: string;
   deliveryFee: number;
+}
+
+export interface NotificationInterface {
+  user: Types.ObjectId;
+  title: string;
+  message: string;
+  type?: 'system' | 'order' | 'payment';
+  read: boolean;
+  metadata?: Record<string, any>;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
