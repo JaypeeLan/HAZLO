@@ -14,7 +14,13 @@ export const initializeOrderPayment = async (
     const email = req.user.email;
     const paymentData = await paymentService.initializePayment(orderId, email);
 
-    res.status(200).json({ success: true, data: paymentData });
+    res.status(200).json({
+      success: true,
+      data: {
+        ...paymentData,
+        callback: 'https://hazlo-l3io.onrender.com/api/v1/payments/callback',
+      },
+    });
   } catch (error) {
     next(error instanceof AppError ? error : new AppError(error, 500));
   }
