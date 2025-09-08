@@ -3,6 +3,7 @@ import * as paymentService from '../services/paystack/paymentService';
 import crypto from 'crypto';
 import { AppError } from '../middlewares/errorHandler';
 import { ENV } from '../config/env';
+import { sendResponse } from '../utils/sendResponse';
 
 export const initializeOrderPayment = async (
   req: Request,
@@ -14,8 +15,11 @@ export const initializeOrderPayment = async (
     const email = req.user.email;
     const paymentData = await paymentService.initializePayment(orderId, email);
 
-    res.status(200).json({
-      success: true,
+    sendResponse({
+      res,
+      statusCode: 200,
+      status: 'success',
+      message: 'Payment initialized,',
       data: {
         ...paymentData,
         callback: 'https://hazlo-l3io.onrender.com/api/v1/payments/callback',
@@ -26,20 +30,34 @@ export const initializeOrderPayment = async (
   }
 };
 
-export const verifyOrderPayment = async (req: Request, res: Response) => {
+export const verifyOrderPayment = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   try {
     const { reference } = req.query;
     const verification = await paymentService.verifyPayment(
       reference as string
     );
 
-    res.status(200).json({ success: true, data: verification });
+    sendResponse({
+      res,
+      statusCode: 200,
+      status: 'success',
+      message: 'Payment verified,',
+      data: verification,
+    });
   } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
+    next(error instanceof AppError ? error : new AppError(error, 500));
   }
 };
 
-export const refundOrder = async (req: Request, res: Response) => {
+export const refundOrder = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   try {
     const { orderId } = req.params;
     const { reason } = req.body;
@@ -48,8 +66,15 @@ export const refundOrder = async (req: Request, res: Response) => {
       reason || 'Order cancelled'
     );
     res.status(200).json({ success: true, data: refundData });
+    sendResponse({
+      res,
+      statusCode: 200,
+      status: 'success',
+      message: 'Payment initialized,',
+      data: refundData,
+    });
   } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
+    next(error instanceof AppError ? error : new AppError(error, 500));
   }
 };
 
