@@ -212,6 +212,62 @@ export const resetPassword = async (
   }
 };
 
+export const resendVerificationToken = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      throw new AppError(ResponseMessages.MISSING_FIELD, 400);
+    }
+
+    const user = await UserModel.findOne({ email });
+    if (!user) {
+      throw new AppError(ResponseMessages.USER_NOT_FOUND, 404);
+    }
+
+    if (user.isVerified) {
+      throw new AppError(ResponseMessages.ALREADY_VERIFIED, 400);
+    }
+
+    const verificationToken = generateResetToken();
+    user.verificationToken = verificationToken;
+    await user.save();
+
+    // Send email again
+    await sendEmail({
+      to: email,
+      subject: 'Resend Verification - Please Verify Your Email Address',
+      text: `Hello,\n\nHere is your new verification token:\n\nVerification Token: ${verificationToken}\n\nThis token is valid for 24 hours.\n\nIf you did not request this, please ignore this email.\n\nBest regards,\nThe Team`,
+      html: `
+        <h2>Email Verification</h2>
+        <p>You requested a new verification token. Use the token below:</p>
+        <p><strong>Verification Token: ${verificationToken}</strong></p>
+        <p>This token is valid for 24 hours.</p>
+        <p>If you did not request this, please ignore this email.</p>
+        <p>Best regards,<br>The Team</p>
+      `,
+    });
+
+    sendResponse({
+      res,
+      statusCode: 200,
+      status: 'success',
+      message: ResponseMessages.VERIFICATION_TOKEN_RESENT,
+      data: { email: user.email },
+    });
+  } catch (error) {
+    next(
+      error instanceof AppError
+        ? error
+        : new AppError(ResponseMessages.RESEND_VERIFICATION_ERROR, 500)
+    );
+  }
+};
+
 export const verifyResetToken = async (
   req: Request,
   res: Response,
@@ -219,10 +275,6 @@ export const verifyResetToken = async (
 ): Promise<void> => {
   try {
     const { token, newPassword } = req.body;
-
-    if (!token || !newPassword) {
-      throw new AppError(ResponseMessages.INVALID_CREDENTIALS, 400);
-    }
 
     const user = await UserModel.findOne({
       resetToken: token,
