@@ -77,12 +77,17 @@ export const getOrders = async (
   next: NextFunction
 ) => {
   try {
-    const { status, page = 1, limit = 10 } = req.query;
+    const { orderStatus, paymentStatus, page = 1, limit = 10 } = req.query;
     const userId = req.user.id;
 
     const filter: Record<string, any> = { customerId: userId };
-    if (status && typeof status === 'string') {
-      filter.orderStatus = status;
+
+    if (orderStatus && typeof orderStatus === 'string') {
+      filter.orderStatus = orderStatus;
+    }
+
+    if (paymentStatus && typeof paymentStatus === 'string') {
+      filter.paymentStatus = paymentStatus;
     }
 
     const skip = (Number(page) - 1) * Number(limit);

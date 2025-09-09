@@ -23,12 +23,8 @@ export interface UserInterface {
   countryCode: string;
 }
 
-export type OrderStatus =
-  | 'pending'
-  | 'completed'
-  | 'cancelled'
-  | 'in-transit'
-  | 'accepted';
+export type OrderStatus = 'pending' | 'completed' | 'cancelled' | 'in-transit';
+
 export type PaymentStatus = 'pending' | 'paid' | 'refunded';
 export type ServiceType = 'refillCylinder' | 'buyCylinder' | 'laundry';
 
