@@ -8,7 +8,6 @@ const orderSchema = new Schema<IOrderInterface>(
     customerName: { type: String, required: true },
     customerId: { type: String, required: true },
     orderId: { type: String, required: true, unique: true },
-    transactionId: { type: Schema.Types.ObjectId, ref: 'Transaction' },
     serviceType: {
       type: String,
       enum: ['refillCylinder', 'buyCylinder', 'laundry'],

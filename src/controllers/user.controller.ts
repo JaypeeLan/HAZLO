@@ -5,6 +5,8 @@ import { sendResponse } from '../utils/sendResponse';
 import UserModel from '../models/user';
 
 import cloudinary from 'cloudinary';
+import { messaging } from '../services/firebase/admin';
+import NotificationModel from '../models/notification';
 
 export const getProfile = async (
   req: Request,
@@ -73,6 +75,31 @@ export const updateProfile = async (
 
     if (!updatedUser) {
       throw new AppError(ResponseMessages.USER_NOT_FOUND, 404);
+    }
+
+    try {
+      if (updatedUser.deviceToken) {
+        const message = {
+          notification: {
+            title: 'Profile Updated',
+            body: 'Your profile has been updated successfully.',
+          },
+          token: updatedUser.deviceToken,
+        };
+
+        await messaging.send(message);
+
+        await NotificationModel.create({
+          user: userId,
+          title: 'Profile Updated',
+          message: 'Your profile has been updated successfully.',
+          type: 'profile',
+          read: false,
+          metadata: { updatedFields: Object.keys(updateData) },
+        });
+      }
+    } catch (notifyError) {
+      console.error('Failed to send profile update notification:', notifyError);
     }
 
     sendResponse({
