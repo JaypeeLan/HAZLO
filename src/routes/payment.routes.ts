@@ -16,6 +16,6 @@ router.post(
   paymentController.refundOrder
 );
 router.post('/payments/webhook', paymentController.webhookHandler);
-router.post('/payments/callback', paymentController.callbackHandler);
+router.get('/payments/callback', paymentController.callbackHandler);
 
 export default router;
