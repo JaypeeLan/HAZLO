@@ -5,6 +5,9 @@ import crypto from 'crypto';
 import OrderModel from '../models/order';
 import { validateOrderFields } from '../middlewares/validator';
 import { ResponseMessages } from '../utils/constants';
+import NotificationModel from '../models/notification';
+import { messaging } from '../services/firebase/admin';
+import UserModel from '../models/user';
 
 export const createOrder = async (
   req: Request,
@@ -45,6 +48,7 @@ export const createOrder = async (
       throw new AppError('Invalid order details: total cannot be zero', 400);
     }
 
+    // Create the order
     const order = await OrderModel.create({
       customerName,
       customerId,
@@ -54,6 +58,32 @@ export const createOrder = async (
       total,
       ...orderDetails,
     });
+
+    try {
+      const user = await UserModel.findById(customerId).select('deviceToken');
+      if (user?.deviceToken) {
+        const message = {
+          notification: {
+            title: 'Order Created Successfully',
+            body: `Your ${order.serviceType} order has been placed successfully.`,
+          },
+          token: user.deviceToken,
+        };
+
+        await messaging.send(message);
+
+        await NotificationModel.create({
+          user: customerId,
+          title: 'Order Created',
+          message: `Your ${order.serviceType} order has been placed successfully.`,
+          type: 'order',
+          read: false,
+          metadata: { orderId: order._id },
+        });
+      }
+    } catch (notifyError) {
+      console.error('Failed to send push notification:', notifyError);
+    }
 
     sendResponse({
       res,

@@ -27,7 +27,7 @@ export const initializePayment = async (orderId: string, email: string) => {
         email,
         amount: amountInKobo,
         metadata: { orderId: order._id.toString() },
-        callback_url: `https://hazlo-l3io.onrender.com/api/v1/payments/callback`,
+        // callback_url: `https://hazlo-l3io.onrender.com/api/v1/payments/callback`,
       },
       {
         headers: {
