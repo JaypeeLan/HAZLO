@@ -28,10 +28,7 @@ export const ENV = {
     process.env.NODE_ENV === 'development'
       ? process.env.CLOUDINARY_NAME_TEST
       : process.env.HAZLO_CLOUDINARY_NAME,
-  BASE_URL:
-    process.env.NODE_ENV === 'development'
-      ? 'https://hazlo-l3io.onrender.com/api/v1'
-      : 'https://hazlo-1-bfjj.onrender.com/api/v1',
+  BASE_URL: process.env.BASE_URL,
   PAYSTACK_KEY: process.env.PAYSTACK_KEY_TEST,
   UPLOAD_FILE_KEY: process.env.UPLOAD_FILE_KEY,
   FIREBASE_PROJECT_ID: process.env.FIREBASE_PROJECT_ID,
