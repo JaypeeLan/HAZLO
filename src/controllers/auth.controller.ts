@@ -18,15 +18,18 @@ export const register = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const { email, phone, password, deviceToken, countryCode } = req.body;
+    let { email, phone, password, deviceToken, countryCode } = req.body;
 
     if (!email || !phone || !password) {
       throw new AppError(ResponseMessages.MISSING_FIELD, 400);
     }
 
+    email = email.toLowerCase().trim();
+
     const existingUser = await UserModel.findOne({
       $or: [{ email }, { phone }],
     }).select('+password');
+
     if (existingUser) {
       throw new AppError(ResponseMessages.USER_EXISTS, 400);
     }
@@ -87,11 +90,13 @@ export const login = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const { email, password, deviceToken } = req.body;
+    let { email, password, deviceToken } = req.body;
 
     if (!email || !password) {
       throw new AppError(ResponseMessages.INVALID_CREDENTIALS, 400);
     }
+
+    email = email.toLowerCase().trim();
 
     const user = await UserModel.findOne({ email }).select('+password');
     if (!user) {
@@ -100,7 +105,7 @@ export const login = async (
 
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
-      throw new AppError(ResponseMessages.INVALID_CREDENTIALS, 401);
+      throw new AppError(ResponseMessages.WRONG_PASSWORD, 401);
     }
 
     if (!user.isVerified) {
@@ -156,13 +161,15 @@ export const resetPassword = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const { email, phone } = req.body;
+    let { email } = req.body;
 
-    if (!email && !phone) {
+    email = email.toLowerCase().trim();
+
+    if (!email) {
       throw new AppError(ResponseMessages.INVALID_CREDENTIALS, 400);
     }
 
-    const user = await UserModel.findOne({ $or: [{ email }, { phone }] });
+    const user = await UserModel.findOne({ email });
     if (!user) {
       throw new AppError(ResponseMessages.USER_NOT_FOUND, 404);
     }
@@ -201,7 +208,7 @@ export const resetPassword = async (
       statusCode: 200,
       status: 'success',
       message: ResponseMessages.RESET_TOKEN_SENT,
-      data: { email: email || null, phone: phone || null },
+      data: { email: email || null },
     });
   } catch (error) {
     next(
@@ -313,12 +320,14 @@ export const deleteUser = async (
   next: NextFunction
 ) => {
   try {
-    const { email } = req.body;
+    let { email } = req.body;
 
     // Validate email input
     if (!email) {
       return next(new AppError('Email is required', 400));
     }
+
+    email = email.toLowerCase().trim();
 
     // Find the user first
     const userToBeDeleted = await UserModel.findOne({ email });
@@ -352,11 +361,13 @@ export const logout = async (
   next: NextFunction
 ) => {
   try {
-    const { email, deviceToken } = req.body;
+    let { email, deviceToken } = req.body;
 
     if (!email) {
       throw new AppError('Email is required to logout', 400);
     }
+
+    email = email.toLowerCase().trim();
 
     const user = await UserModel.findOne({ email });
     if (!user) {
