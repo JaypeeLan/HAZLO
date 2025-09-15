@@ -18,6 +18,7 @@ export const createOrder = async (
     const customerName = req.user?.name;
     const customerId = req.user?.id;
     const orderDetails = req.body;
+
     if (!customerName || !customerId) {
       throw new AppError(
         'Customer info missing. Please update your profile',
@@ -44,6 +45,7 @@ export const createOrder = async (
     ) {
       total = orderDetails.total || 0;
     }
+
     if (total === 0) {
       throw new AppError('Invalid order details: total cannot be zero', 400);
     }
@@ -61,6 +63,18 @@ export const createOrder = async (
 
     try {
       const user = await UserModel.findById(customerId).select('deviceToken');
+
+      // Always save notification
+      await NotificationModel.create({
+        user: customerId,
+        title: 'Order Created',
+        message: `Your ${order.serviceType} order has been placed successfully.`,
+        type: 'order',
+        read: false,
+        metadata: { orderId: order._id },
+      });
+
+      // Send push only if token exists
       if (user?.deviceToken) {
         const message = {
           notification: {
@@ -69,20 +83,10 @@ export const createOrder = async (
           },
           token: user.deviceToken,
         };
-
         await messaging.send(message);
-
-        await NotificationModel.create({
-          user: customerId,
-          title: 'Order Created',
-          message: `Your ${order.serviceType} order has been placed successfully.`,
-          type: 'order',
-          read: false,
-          metadata: { orderId: order._id },
-        });
       }
     } catch (notifyError) {
-      console.error('Failed to send push notification:', notifyError);
+      console.error('Failed to process notification:', notifyError);
     }
 
     sendResponse({
