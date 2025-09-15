@@ -78,6 +78,17 @@ export const updateProfile = async (
     }
 
     try {
+      // Always save notification
+      await NotificationModel.create({
+        user: userId,
+        title: 'Profile Updated',
+        message: 'Your profile has been updated successfully.',
+        type: 'profile',
+        read: false,
+        metadata: { updatedFields: Object.keys(updateData) },
+      });
+
+      // Only send push if deviceToken is present
       if (updatedUser.deviceToken) {
         const message = {
           notification: {
@@ -86,20 +97,13 @@ export const updateProfile = async (
           },
           token: updatedUser.deviceToken,
         };
-
         await messaging.send(message);
-
-        await NotificationModel.create({
-          user: userId,
-          title: 'Profile Updated',
-          message: 'Your profile has been updated successfully.',
-          type: 'profile',
-          read: false,
-          metadata: { updatedFields: Object.keys(updateData) },
-        });
       }
     } catch (notifyError) {
-      console.error('Failed to send profile update notification:', notifyError);
+      console.error(
+        'Failed to process profile update notification:',
+        notifyError
+      );
     }
 
     sendResponse({
@@ -117,7 +121,6 @@ export const updateProfile = async (
     );
   }
 };
-
 export const updateProfileImage = async (
   req: Request,
   res: Response,

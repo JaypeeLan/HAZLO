@@ -22,6 +22,16 @@ export const initializeOrderPayment = async (
 
     try {
       const user = await UserModel.findById(req.user.id).select('deviceToken');
+
+      await NotificationModel.create({
+        user: req.user.id,
+        title: 'Payment Initialization',
+        message: `Payment for order ${orderId} has been initialized.`,
+        type: 'payment',
+        read: false,
+        metadata: { orderId },
+      });
+
       if (user?.deviceToken) {
         const message = {
           notification: {
@@ -31,18 +41,10 @@ export const initializeOrderPayment = async (
           token: user.deviceToken,
         };
         await messaging.send(message);
-        await NotificationModel.create({
-          user: req.user.id,
-          title: 'Payment Initialization',
-          message: `Payment for order ${orderId} has been initialized.`,
-          type: 'payment',
-          read: false,
-          metadata: { orderId },
-        });
       }
     } catch (notifyError) {
       console.error(
-        'Failed to send initializeOrderPayment notification:',
+        'Failed to process initializeOrderPayment notification:',
         notifyError
       );
     }
@@ -51,7 +53,7 @@ export const initializeOrderPayment = async (
       res,
       statusCode: 200,
       status: 'success',
-      message: 'Payment initialized,',
+      message: 'Payment initialized',
       data: {
         ...paymentData,
         callback: `${ENV.BASE_URL}/payments/callback`,
@@ -75,6 +77,14 @@ export const verifyOrderPayment = async (
 
     try {
       const user = await UserModel.findById(req.user.id).select('deviceToken');
+      await NotificationModel.create({
+        user: req.user.id,
+        title: 'Payment Verified',
+        message: `Your payment with reference ${reference} has been verified.`,
+        type: 'payment',
+        read: false,
+        metadata: { reference },
+      });
       if (user?.deviceToken) {
         const message = {
           notification: {
@@ -84,14 +94,6 @@ export const verifyOrderPayment = async (
           token: user.deviceToken,
         };
         await messaging.send(message);
-        await NotificationModel.create({
-          user: req.user.id,
-          title: 'Payment Verified',
-          message: `Your payment with reference ${reference} has been verified.`,
-          type: 'payment',
-          read: false,
-          metadata: { reference },
-        });
       }
     } catch (notifyError) {
       console.error(
@@ -127,6 +129,14 @@ export const refundOrder = async (
 
     try {
       const user = await UserModel.findById(req.user.id).select('deviceToken');
+      await NotificationModel.create({
+        user: req.user.id,
+        title: 'Refund Processed',
+        message: `A refund for order ${orderId} has been processed.`,
+        type: 'refund',
+        read: false,
+        metadata: { orderId, reason },
+      });
       if (user?.deviceToken) {
         const message = {
           notification: {
@@ -136,14 +146,6 @@ export const refundOrder = async (
           token: user.deviceToken,
         };
         await messaging.send(message);
-        await NotificationModel.create({
-          user: req.user.id,
-          title: 'Refund Processed',
-          message: `A refund for order ${orderId} has been processed.`,
-          type: 'refund',
-          read: false,
-          metadata: { orderId, reason },
-        });
       }
     } catch (notifyError) {
       console.error('Failed to send refundOrder notification:', notifyError);
@@ -184,6 +186,14 @@ export const webhookHandler = async (req: Request, res: Response) => {
       const userId = event.data?.metadata?.userId;
       if (userId) {
         const user = await UserModel.findById(userId).select('deviceToken');
+        await NotificationModel.create({
+          user: userId,
+          title: `Payment ${event.event}`,
+          message: `Your payment status is now: ${event.data.status}`,
+          type: 'payment',
+          read: false,
+          metadata: event.data,
+        });
         if (user?.deviceToken) {
           const message = {
             notification: {
@@ -193,14 +203,6 @@ export const webhookHandler = async (req: Request, res: Response) => {
             token: user.deviceToken,
           };
           await messaging.send(message);
-          await NotificationModel.create({
-            user: userId,
-            title: `Payment ${event.event}`,
-            message: `Your payment status is now: ${event.data.status}`,
-            type: 'payment',
-            read: false,
-            metadata: event.data,
-          });
         }
       }
     } catch (notifyError) {
@@ -314,6 +316,20 @@ export const callbackHandler = async (req: Request, res: Response) => {
             const user = await UserModel.findById(order.customerId).select(
               'deviceToken'
             );
+
+            // Save notification to database
+            await NotificationModel.create({
+              user: order.customerId,
+              title: 'Payment Successful! 🎉',
+              message: `Your payment for order #${order.orderId} has been completed successfully.`,
+              type: 'payment',
+              read: false,
+              metadata: {
+                orderId: order.orderId,
+                reference: paymentReference,
+                amount: verification.data.amount / 100,
+              },
+            });
             if (user?.deviceToken) {
               const message = {
                 notification: {
@@ -329,20 +345,6 @@ export const callbackHandler = async (req: Request, res: Response) => {
                 token: user.deviceToken,
               };
               await messaging.send(message);
-
-              // Save notification to database
-              await NotificationModel.create({
-                user: order.customerId,
-                title: 'Payment Successful! 🎉',
-                message: `Your payment for order #${order.orderId} has been completed successfully.`,
-                type: 'payment',
-                read: false,
-                metadata: {
-                  orderId: order.orderId,
-                  reference: paymentReference,
-                  amount: verification.data.amount / 100, // Convert from kobo
-                },
-              });
             }
           }
         }
