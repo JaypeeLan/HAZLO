@@ -38,6 +38,10 @@ export enum ResponseMessages {
   WRONG_PASSWORD = 'Wrong password. Please try again',
   USERS_FETCHED = 'Users Fetched!',
 
+  ALREADY_VERIFIED = 'User already verified. Please login.',
+  VERIFICATION_TOKEN_RESENT = 'Verification toke resent.',
+  RESEND_VERIFICATION_ERROR = 'Unable to resend token. Please try again.',
+
   // Password reset messages
   RESET_TOKEN_SENT = 'A password reset token has been sent to your email or phone.',
   RESET_PASSWORD_ERROR = 'Error processing password reset. Please try again later.',

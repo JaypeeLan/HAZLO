@@ -1,7 +1,7 @@
 import express from 'express';
 import {
   getNotifications,
-  sendBulkPushNotifications,
+  sendPushNotification,
 } from '../controllers/notification.controller';
 import { authenticateToken, authorize } from '../middlewares/auth.middleware';
 
@@ -11,7 +11,7 @@ router.post(
   '/send-push-notification',
   authenticateToken,
   authorize(['admin']),
-  sendBulkPushNotifications
+  sendPushNotification
 );
 router.get('/notifications', authenticateToken, getNotifications);
 

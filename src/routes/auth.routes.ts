@@ -4,6 +4,7 @@ import {
   login,
   logout,
   register,
+  resendVerificationToken,
   resetPassword,
   verifyResetToken,
 } from '../controllers/auth.controller';
@@ -33,6 +34,7 @@ router.post('/login', login);
 router.post('/logout', logout);
 router.post('/reset-password', resetPassword);
 router.post('/verify-reset-token', verifyResetToken);
+router.post('/resend-verification-password', resendVerificationToken);
 router.post(
   '/delete-user',
   authenticateToken,

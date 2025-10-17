@@ -5,6 +5,9 @@ import crypto from 'crypto';
 import OrderModel from '../models/order';
 import { validateOrderFields } from '../middlewares/validator';
 import { ResponseMessages } from '../utils/constants';
+import NotificationModel from '../models/notification';
+import { messaging } from '../services/firebase/admin';
+import UserModel from '../models/user';
 
 export const createOrder = async (
   req: Request,
@@ -15,6 +18,7 @@ export const createOrder = async (
     const customerName = req.user?.name;
     const customerId = req.user?.id;
     const orderDetails = req.body;
+
     if (!customerName || !customerId) {
       throw new AppError(
         'Customer info missing. Please update your profile',
@@ -41,10 +45,12 @@ export const createOrder = async (
     ) {
       total = orderDetails.total || 0;
     }
+
     if (total === 0) {
       throw new AppError('Invalid order details: total cannot be zero', 400);
     }
 
+    // Create the order
     const order = await OrderModel.create({
       customerName,
       customerId,
@@ -54,6 +60,59 @@ export const createOrder = async (
       total,
       ...orderDetails,
     });
+
+    try {
+      const user = await UserModel.findById(customerId).select('deviceToken');
+      const admin = await UserModel.findOne({ role: 'admin' }).select(
+        'deviceToken'
+      );
+
+      // Save notification for customer
+      await NotificationModel.create({
+        user: customerId,
+        title: 'Order Created',
+        message: `Your ${order.serviceType} order has been placed successfully.`,
+        type: 'order',
+        read: false,
+        metadata: { orderId: order._id },
+      });
+
+      // Save notification for admin
+      await NotificationModel.create({
+        user: admin?._id,
+        title: 'New Order Received',
+        message: `A new ${order.serviceType} order has been placed by ${customerName}.`,
+        type: 'order',
+        read: false,
+        metadata: { orderId: order._id },
+      });
+
+      // Send push to customer if token exists
+      if (user?.deviceToken) {
+        const message = {
+          notification: {
+            title: 'Order Created Successfully',
+            body: `Your ${order.serviceType} order has been placed successfully.`,
+          },
+          token: user.deviceToken,
+        };
+        await messaging.send(message);
+      }
+
+      // Send push to admin if token exists
+      if (admin?.deviceToken) {
+        const adminMessage = {
+          notification: {
+            title: 'New Order Received',
+            body: `A new ${order.serviceType} order has been placed by ${customerName}.`,
+          },
+          token: admin.deviceToken,
+        };
+        await messaging.send(adminMessage);
+      }
+    } catch (notifyError) {
+      console.error('Failed to process notification:', notifyError);
+    }
 
     sendResponse({
       res,
@@ -77,12 +136,17 @@ export const getOrders = async (
   next: NextFunction
 ) => {
   try {
-    const { status, page = 1, limit = 10 } = req.query;
+    const { orderStatus, paymentStatus, page = 1, limit = 10 } = req.query;
     const userId = req.user.id;
 
     const filter: Record<string, any> = { customerId: userId };
-    if (status && typeof status === 'string') {
-      filter.orderStatus = status;
+
+    if (orderStatus && typeof orderStatus === 'string') {
+      filter.orderStatus = orderStatus;
+    }
+
+    if (paymentStatus && typeof paymentStatus === 'string') {
+      filter.paymentStatus = paymentStatus;
     }
 
     const skip = (Number(page) - 1) * Number(limit);
