@@ -63,8 +63,11 @@ export const createOrder = async (
 
     try {
       const user = await UserModel.findById(customerId).select('deviceToken');
+      const admin = await UserModel.findOne({ role: 'admin' }).select(
+        'deviceToken'
+      );
 
-      // Always save notification
+      // Save notification for customer
       await NotificationModel.create({
         user: customerId,
         title: 'Order Created',
@@ -74,7 +77,17 @@ export const createOrder = async (
         metadata: { orderId: order._id },
       });
 
-      // Send push only if token exists
+      // Save notification for admin
+      await NotificationModel.create({
+        user: admin?._id,
+        title: 'New Order Received',
+        message: `A new ${order.serviceType} order has been placed by ${customerName}.`,
+        type: 'order',
+        read: false,
+        metadata: { orderId: order._id },
+      });
+
+      // Send push to customer if token exists
       if (user?.deviceToken) {
         const message = {
           notification: {
@@ -84,6 +97,18 @@ export const createOrder = async (
           token: user.deviceToken,
         };
         await messaging.send(message);
+      }
+
+      // Send push to admin if token exists
+      if (admin?.deviceToken) {
+        const adminMessage = {
+          notification: {
+            title: 'New Order Received',
+            body: `A new ${order.serviceType} order has been placed by ${customerName}.`,
+          },
+          token: admin.deviceToken,
+        };
+        await messaging.send(adminMessage);
       }
     } catch (notifyError) {
       console.error('Failed to process notification:', notifyError);
