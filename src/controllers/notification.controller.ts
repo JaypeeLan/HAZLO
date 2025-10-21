@@ -4,93 +4,68 @@ import { AppError } from '../middlewares/errorHandler';
 import { messaging } from '../services/firebase/admin';
 import NotificationModel from '../models/notification';
 
-export const sendBulkPushNotifications = async (
+export const sendPushNotification = async (
   req: Request,
   res: Response,
   next: NextFunction
 ) => {
   try {
-    const { users, title, body, type, metadata } = req.body;
+    const { userId, deviceToken, title, body, type, metadata } = req.body;
 
-    if (!users || !Array.isArray(users) || users.length === 0) {
-      throw new AppError('Missing or invalid users array', 400);
+    if (!userId || !deviceToken) {
+      throw new AppError('Missing required fields: userId or deviceToken', 400);
     }
     if (!title || !body) {
       throw new AppError('Missing required fields: title, body', 400);
     }
 
-    // Track results
-    const results: any[] = [];
-
-    for (const user of users) {
-      const { userId, deviceToken } = user;
-
-      if (!userId || !deviceToken) {
-        results.push({
-          userId,
-          success: false,
-          error: 'Missing userId or deviceToken',
-        });
-        continue;
-      }
-
-      const message = {
-        notification: { title, body },
-        token: deviceToken,
-        android: {
-          priority: 'high' as const,
-          notification: {
-            sound: 'default',
-            channelId: 'default',
-          },
+    const message = {
+      notification: { title, body },
+      token: deviceToken,
+      android: {
+        priority: 'high' as const,
+        notification: {
+          sound: 'default',
+          channelId: 'default',
         },
-        apns: {
-          payload: {
-            aps: { sound: 'default' },
-          },
+      },
+      apns: {
+        payload: {
+          aps: { sound: 'default' },
         },
-      };
+      },
+    };
 
-      try {
-        // Send push
-        const fcmResponse = await messaging.send(message);
+    try {
+      const fcmResponse = await messaging.send(message);
 
-        // Save to DB
-        const notification = await NotificationModel.create({
-          user: userId,
-          title,
-          message: body,
-          type: type || 'system',
-          read: false,
-          metadata,
-        });
+      const notification = await NotificationModel.create({
+        user: userId,
+        title,
+        message: body,
+        type: type || 'system',
+        read: false,
+        metadata,
+      });
 
-        results.push({
+      return sendResponse({
+        res,
+        statusCode: 200,
+        status: 'success',
+        message: 'Notification sent successfully',
+        data: {
           userId,
-          success: true,
           fcmMessageId: fcmResponse,
           notification,
-        });
-      } catch (err: any) {
-        results.push({
-          userId,
-          success: false,
-          error: err.message || 'FCM send failed',
-        });
-      }
+        },
+      });
+    } catch (err: any) {
+      throw new AppError(err.message || 'FCM send failed', 500);
     }
-
-    return sendResponse({
-      res,
-      statusCode: 200,
-      status: 'success',
-      message: 'Bulk notifications processed',
-      data: results,
-    });
   } catch (error: any) {
-    console.error('Bulk notification error:', error);
+    console.error('Send notification error:', error);
     return next(
-      new AppError(error.message || 'Failed to send bulk notifications', 500)
+      new AppError(error.message || 'Failed to send notification', 500)
     );
   }
 };
