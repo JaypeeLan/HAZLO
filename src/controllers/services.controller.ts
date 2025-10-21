@@ -24,17 +24,16 @@ export const getPriceList = async (
     }
 
     const priceList = await PriceListModel.findOne(filter);
-    if (!priceList) {
-      throw new AppError('Price list not found', 404);
-    }
 
-    const responseData = type
-      ? {
-          prices: priceList.prices.filter(
-            (p) => p.type === type.toString().toLowerCase()
-          ),
-        }
-      : priceList;
+    const responseData = priceList
+      ? type
+        ? {
+            prices: priceList.prices.filter(
+              (p) => p.type === type.toString().toLowerCase()
+            ),
+          }
+        : priceList
+      : { prices: [] };
 
     sendResponse({
       res,
