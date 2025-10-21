@@ -7,6 +7,8 @@ import { sendResponse } from '../utils/sendResponse';
 // import { twilioClient, twilioServiceSid } from '../utils/twilio';
 import {
   formatUser,
+  generateJwtToken,
+  generateResetToken,
   generateVerificationToken,
   updateUserVerification,
 } from '../utils/helpers';
@@ -141,20 +143,57 @@ export const verifyEmail = async (
       throw new AppError(ResponseMessages.INVALID_OTP, 400);
     }
 
-    const user = await UserModel.findOne({ verificationToken: token });
+    const user = await UserModel.findOne({ verificationToken: token }).select(
+      '+verificationToken +verificationTokenExpires'
+    );
 
     if (!user) {
       throw new AppError(ResponseMessages.EMAIL_VERIFY_ERROR, 400);
     }
 
+    if (user.isVerified) {
+      throw new AppError(ResponseMessages.ALREADY_VERIFIED, 400);
+    }
+
+    if (
+      user.verificationTokenExpires &&
+      user.verificationTokenExpires < new Date()
+    ) {
+      const verificationToken = generateResetToken();
+      const tokenExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000);
+
+      await sendEmail({
+        to: user.email,
+        subject: 'Please Verify Your Email Address',
+        text: `Hello,\n\nYour verification token has expired. Please use the following new token to verify your email address:\n\nVerification Token: ${verificationToken}\n\nEnter this token in the verification section of our app or website to activate your account. This token is valid for 24 hours.\n\nBest regards,\nThe Team`,
+        html: `
+          <h2>Verify Your Email Address</h2>
+          <p>Your verification token has expired. Please use the new token below to verify your email address:</p>
+          <p><strong>Verification Token: ${verificationToken}</strong></p>
+          <p>Enter this token in the verification section of our app or website to activate your account. This token is valid for 24 hours.</p>
+          <p>Best regards,<br>The Team</p>
+        `,
+      });
+
+      user.verificationToken = verificationToken;
+      user.verificationTokenExpires = tokenExpiry;
+      await user.save();
+
+      throw new AppError(ResponseMessages.TOKEN_EXPIRED, 400);
+    }
+
+    const userToken = generateJwtToken(user._id as string);
+
     await updateUserVerification(user);
+    user.token = userToken;
+    await user.save();
 
     sendResponse({
       res,
       statusCode: 200,
       status: 'success',
       message: ResponseMessages.EMAIL_VERIFY_SUCCESS,
-      data: formatUser(user),
+      data: formatUser(user, userToken),
     });
   } catch (error) {
     console.error('Verify email error:', error);

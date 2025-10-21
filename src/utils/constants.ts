@@ -11,6 +11,7 @@ export enum ResponseMessages {
   INVALID_RESET_TOKEN = 'The password reset token is invalid or has expired.',
 
   NO_USER = 'User not found. Please create an account',
+  TOKEN_EXPIRED = 'YOur token has expired. Please check your mail for a new token.',
 
   // Email verification messages
   EMAIL_SENT = 'A verification email has been sent to your email address. Please check your inbox.',
