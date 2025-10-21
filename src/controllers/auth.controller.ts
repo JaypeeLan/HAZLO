@@ -110,6 +110,7 @@ export const login = async (
 
     if (!user.isVerified) {
       const verificationToken = generateResetToken();
+      const tokenExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000);
 
       await sendEmail({
         to: email,
@@ -126,6 +127,7 @@ export const login = async (
       });
 
       user.verificationToken = verificationToken;
+      user.verificationTokenExpires = tokenExpiry;
       await user.save();
 
       throw new AppError(ResponseMessages.UNVERIFIED_ACCOUNT, 403);
@@ -133,10 +135,11 @@ export const login = async (
 
     if (deviceToken) {
       user.deviceToken = deviceToken;
-      await user.save();
     }
 
     const token = generateJwtToken(user._id as string);
+    user.token = token;
+    await user.save();
 
     sendResponse({
       res,
