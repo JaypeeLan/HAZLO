@@ -1,9 +1,12 @@
+/* eslint-disable no-useless-escape */
 import { Request, Response, NextFunction } from 'express';
+
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-// const phoneRegex = /^[0-9]{11}$/; // e.g., 11-digit NG number
 const nameRegex = /^[a-zA-Z\s]+$/;
+
 const passwordRegex =
-  /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d@$!%*?&#+=^%~(){}[\]:;'"<>,.?/-]{6,}$/;
+  /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]).{6,}$/;
+
 const globalValidator = (obj: any): string[] => {
   const errors: string[] = [];
 
@@ -36,7 +39,7 @@ const globalValidator = (obj: any): string[] => {
           !passwordRegex.test(value)
         ) {
           errors.push(
-            `${fullKey} must be at least 6 characters, contain letters and numbers`
+            `${fullKey} must be at least 6 characters, contain at least one uppercase letter, one lowercase letter, one number, and one special character`
           );
         }
       }
