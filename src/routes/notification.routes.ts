@@ -2,17 +2,25 @@ import express from 'express';
 import {
   getNotifications,
   sendPushNotification,
+  markNotificationsAsRead,
+  deleteNotifications,
 } from '../controllers/notification.controller';
 import { authenticateToken, authorize } from '../middlewares/auth.middleware';
 
 const router = express.Router();
 
+router.use(authenticateToken);
+
+// Admin only
 router.post(
   '/send-push-notification',
-  authenticateToken,
   authorize(['admin']),
   sendPushNotification
 );
-router.get('/notifications', authenticateToken, getNotifications);
+
+router.get('/notifications', getNotifications);
+
+router.patch('/notifications/read', markNotificationsAsRead);
+router.delete('/notifications', deleteNotifications);
 
 export default router;

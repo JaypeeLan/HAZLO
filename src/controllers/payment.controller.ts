@@ -4,7 +4,6 @@ import crypto from 'crypto';
 import { AppError } from '../middlewares/errorHandler';
 import { ENV } from '../config/env';
 import { sendResponse } from '../utils/sendResponse';
-
 import { messaging } from '../services/firebase/admin';
 import UserModel from '../models/user';
 import NotificationModel from '../models/notification';
@@ -22,7 +21,11 @@ export const initializeOrderPayment = async (
 
     try {
       const user = await UserModel.findById(req.user.id).select('deviceToken');
+      const admin = await UserModel.findOne({ role: 'admin' }).select(
+        'deviceToken'
+      );
 
+      // Save notification for customer
       await NotificationModel.create({
         user: req.user.id,
         title: 'Payment Initialization',
@@ -32,6 +35,17 @@ export const initializeOrderPayment = async (
         metadata: { orderId },
       });
 
+      // Save notification for admin
+      await NotificationModel.create({
+        user: admin?._id,
+        title: 'Payment Initialization',
+        message: `Payment for order ${orderId} has been initialized by ${req.user.email}.`,
+        type: 'payment',
+        read: false,
+        metadata: { orderId },
+      });
+
+      // Send push to customer if token exists
       if (user?.deviceToken) {
         const message = {
           notification: {
@@ -41,6 +55,18 @@ export const initializeOrderPayment = async (
           token: user.deviceToken,
         };
         await messaging.send(message);
+      }
+
+      // Send push to admin if token exists
+      if (admin?.deviceToken) {
+        const adminMessage = {
+          notification: {
+            title: 'Payment Initialization',
+            body: `Payment for order ${orderId} has been initialized by ${req.user.email}.`,
+          },
+          token: admin.deviceToken,
+        };
+        await messaging.send(adminMessage);
       }
     } catch (notifyError) {
       console.error(
@@ -77,6 +103,11 @@ export const verifyOrderPayment = async (
 
     try {
       const user = await UserModel.findById(req.user.id).select('deviceToken');
+      const admin = await UserModel.findOne({ role: 'admin' }).select(
+        'deviceToken'
+      );
+
+      // Save notification for customer
       await NotificationModel.create({
         user: req.user.id,
         title: 'Payment Verified',
@@ -85,6 +116,18 @@ export const verifyOrderPayment = async (
         read: false,
         metadata: { reference },
       });
+
+      // Save notification for admin
+      await NotificationModel.create({
+        user: admin?._id,
+        title: 'Payment Verified',
+        message: `Payment with reference ${reference} has been verified for ${req.user.email}.`,
+        type: 'payment',
+        read: false,
+        metadata: { reference },
+      });
+
+      // Send push to customer if token exists
       if (user?.deviceToken) {
         const message = {
           notification: {
@@ -94,6 +137,18 @@ export const verifyOrderPayment = async (
           token: user.deviceToken,
         };
         await messaging.send(message);
+      }
+
+      // Send push to admin if token exists
+      if (admin?.deviceToken) {
+        const adminMessage = {
+          notification: {
+            title: 'Payment Verified',
+            body: `Payment with reference ${reference} has been verified for ${req.user.email}.`,
+          },
+          token: admin.deviceToken,
+        };
+        await messaging.send(adminMessage);
       }
     } catch (notifyError) {
       console.error(
@@ -129,6 +184,11 @@ export const refundOrder = async (
 
     try {
       const user = await UserModel.findById(req.user.id).select('deviceToken');
+      const admin = await UserModel.findOne({ role: 'admin' }).select(
+        'deviceToken'
+      );
+
+      // Save notification for customer
       await NotificationModel.create({
         user: req.user.id,
         title: 'Refund Processed',
@@ -137,6 +197,18 @@ export const refundOrder = async (
         read: false,
         metadata: { orderId, reason },
       });
+
+      // Save notification for admin
+      await NotificationModel.create({
+        user: admin?._id,
+        title: 'Refund Processed',
+        message: `A refund for order ${orderId} has been processed for ${req.user.email}.`,
+        type: 'refund',
+        read: false,
+        metadata: { orderId, reason },
+      });
+
+      // Send push to customer if token exists
       if (user?.deviceToken) {
         const message = {
           notification: {
@@ -147,11 +219,22 @@ export const refundOrder = async (
         };
         await messaging.send(message);
       }
+
+      // Send push to admin if token exists
+      if (admin?.deviceToken) {
+        const adminMessage = {
+          notification: {
+            title: 'Refund Processed',
+            body: `A refund for order ${orderId} has been processed for ${req.user.email}.`,
+          },
+          token: admin.deviceToken,
+        };
+        await messaging.send(adminMessage);
+      }
     } catch (notifyError) {
       console.error('Failed to send refundOrder notification:', notifyError);
     }
 
-    res.status(200).json({ success: true, data: refundData });
     sendResponse({
       res,
       statusCode: 200,
@@ -186,6 +269,11 @@ export const webhookHandler = async (req: Request, res: Response) => {
       const userId = event.data?.metadata?.userId;
       if (userId) {
         const user = await UserModel.findById(userId).select('deviceToken');
+        const admin = await UserModel.findOne({ role: 'admin' }).select(
+          'deviceToken'
+        );
+
+        // Save notification for customer
         await NotificationModel.create({
           user: userId,
           title: `Payment ${event.event}`,
@@ -194,6 +282,18 @@ export const webhookHandler = async (req: Request, res: Response) => {
           read: false,
           metadata: event.data,
         });
+
+        // Save notification for admin
+        await NotificationModel.create({
+          user: admin?._id,
+          title: `Payment ${event.event}`,
+          message: `Payment status for user ${userId} is now: ${event.data.status}`,
+          type: 'payment',
+          read: false,
+          metadata: event.data,
+        });
+
+        // Send push to customer if token exists
         if (user?.deviceToken) {
           const message = {
             notification: {
@@ -203,6 +303,18 @@ export const webhookHandler = async (req: Request, res: Response) => {
             token: user.deviceToken,
           };
           await messaging.send(message);
+        }
+
+        // Send push to admin if token exists
+        if (admin?.deviceToken) {
+          const adminMessage = {
+            notification: {
+              title: `Payment ${event.event}`,
+              body: `Payment status for user ${userId} is now: ${event.data.status}`,
+            },
+            token: admin.deviceToken,
+          };
+          await messaging.send(adminMessage);
         }
       }
     } catch (notifyError) {
@@ -316,8 +428,11 @@ export const callbackHandler = async (req: Request, res: Response) => {
             const user = await UserModel.findById(order.customerId).select(
               'deviceToken'
             );
+            const admin = await UserModel.findOne({ role: 'admin' }).select(
+              'deviceToken'
+            );
 
-            // Save notification to database
+            // Save notification for customer
             await NotificationModel.create({
               user: order.customerId,
               title: 'Payment Successful! 🎉',
@@ -330,6 +445,21 @@ export const callbackHandler = async (req: Request, res: Response) => {
                 amount: verification.data.amount / 100,
               },
             });
+
+            // Save notification for admin
+            await NotificationModel.create({
+              user: admin?._id,
+              title: 'Payment Successful! 🎉',
+              message: `Payment for order #${order.orderId} by ${order.customerName} has been completed successfully.`,
+              type: 'payment',
+              read: false,
+              metadata: {
+                orderId: order.orderId,
+                reference: paymentReference,
+                amount: verification.data.amount / 100,
+              },
+            });
+
             if (user?.deviceToken) {
               const message = {
                 notification: {
@@ -345,6 +475,23 @@ export const callbackHandler = async (req: Request, res: Response) => {
                 token: user.deviceToken,
               };
               await messaging.send(message);
+            }
+
+            if (admin?.deviceToken) {
+              const adminMessage = {
+                notification: {
+                  title: 'Payment Successful! 🎉',
+                  body: `Payment for order #${order.orderId} by ${order.customerName} has been completed successfully.`,
+                },
+                data: {
+                  type: 'PAYMENT_SUCCESS',
+                  orderId: order.orderId,
+                  reference: paymentReference as string,
+                  action: 'CLOSE_PAYMENT_VIEW',
+                },
+                token: admin.deviceToken,
+              };
+              await messaging.send(adminMessage);
             }
           }
         }
