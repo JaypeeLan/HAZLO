@@ -30,3 +30,6 @@ dump.rdb
 *.pid
 
 notes.txt
+
+
+firebase.json
