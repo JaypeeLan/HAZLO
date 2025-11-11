@@ -109,9 +109,9 @@ export const getNotifications = async (
       message: 'Notifications fetched successfully',
       data: {
         notifications,
+        unread: unreadCount,
         pagination: {
           total,
-          unread: unreadCount,
           page,
           limit,
           totalPages: Math.ceil(total / limit),

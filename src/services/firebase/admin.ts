@@ -5,7 +5,7 @@ import { ENV } from '../../config/env';
 if (!admin.apps.length) {
   let credential;
 
-  if (process.env.NODE_ENV === 'production') {
+  if (process.env.NODE_ENV !== 'development') {
     // In production, use environment variables
     const serviceAccount = {
       projectId: ENV.FIREBASE_PROJECT_ID,
