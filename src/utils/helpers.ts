@@ -43,6 +43,7 @@ export function formatUser(user: IUser, token?: string) {
     updatedAt: plainUser.updatedAt,
     deviceToken: plainUser.deviceToken,
     countryCode: plainUser.countryCode,
+    isForDelete: plainUser.isForDelete,
     ...(token && { token }),
   };
 
