@@ -22,6 +22,7 @@ export interface UserInterface {
   updatedAt: Date;
   countryCode: string;
   verificationTokenExpires: Date;
+  isForDelete: false;
 }
 
 export type OrderStatus = 'pending' | 'completed' | 'cancelled' | 'in-transit';
