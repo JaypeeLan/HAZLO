@@ -17,6 +17,10 @@ import {
   // verifyEmail,
 } from '../controllers/verify.controller';
 import { authenticateToken, authorize } from '../middlewares/auth.middleware';
+import {
+  deleteAccount,
+  getAccountsForDeletion,
+} from '../controllers/deleteAccount.controller';
 
 const router = Router();
 
@@ -40,6 +44,15 @@ router.post(
   authenticateToken,
   authorize(['admin']),
   deleteUser
+);
+
+router.patch('/delete-account', authenticateToken, deleteAccount);
+
+router.get(
+  '/for-deletion',
+  authenticateToken,
+  authorize(['admin']),
+  getAccountsForDeletion
 );
 
 export default router;

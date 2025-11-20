@@ -23,13 +23,14 @@ const userSchema = new Schema<IUser>(
     address: { type: String, default: null },
     role: { type: String, enum: ['user', 'admin'], default: 'user' },
     deviceToken: { type: String, default: null },
-    token: { type: String, default: null }, // Add this for storing JWT
+    token: { type: String, default: null },
     isVerified: { type: Boolean, default: false },
     verificationToken: { type: String, default: null, select: false },
-    verificationTokenExpires: { type: Date, default: null, select: false }, // Add this
+    verificationTokenExpires: { type: Date, default: null, select: false },
     resetToken: { type: String, default: null, select: false },
     resetTokenExpires: { type: Date, default: null, select: false },
     notification: { type: Boolean, default: true },
+    isForDelete: { type: Boolean, default: false },
   },
   {
     timestamps: true,
