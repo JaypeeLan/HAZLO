@@ -5,9 +5,7 @@ import crypto from 'crypto';
 import OrderModel from '../models/order';
 import { validateOrderFields } from '../middlewares/validator';
 import { ResponseMessages } from '../utils/constants';
-import NotificationModel from '../models/notification';
-import { messaging } from '../services/firebase/admin';
-import UserModel from '../models/user';
+import { notifyAdmins, notifyUser } from '../services/notification';
 
 export const createOrder = async (
   req: Request,
@@ -62,54 +60,19 @@ export const createOrder = async (
     });
 
     try {
-      const user = await UserModel.findById(customerId).select('deviceToken');
-      const admin = await UserModel.findOne({ role: 'admin' }).select(
-        'deviceToken'
-      );
-
-      // Save notification for customer
-      await NotificationModel.create({
-        user: customerId,
-        title: 'Order Created',
-        message: `Your ${order.serviceType} order has been placed successfully.`,
+      await notifyUser({
+        userId: customerId,
+        title: 'Order Created Successfully',
+        body: `Your ${order.serviceType} order has been placed successfully.`,
         type: 'order',
-        read: false,
         metadata: { orderId: order._id },
       });
-
-      // Save notification for admin
-      await NotificationModel.create({
-        user: admin?._id,
+      await notifyAdmins({
         title: 'New Order Received',
-        message: `A new ${order.serviceType} order has been placed by ${customerName}.`,
+        body: `A new ${order.serviceType} order has been placed by ${customerName}.`,
         type: 'order',
-        read: false,
         metadata: { orderId: order._id },
       });
-
-      // Send push to customer if token exists
-      if (user?.deviceToken) {
-        const message = {
-          notification: {
-            title: 'Order Created Successfully',
-            body: `Your ${order.serviceType} order has been placed successfully.`,
-          },
-          token: user.deviceToken,
-        };
-        await messaging.send(message);
-      }
-
-      // Send push to admin if token exists
-      if (admin?.deviceToken) {
-        const adminMessage = {
-          notification: {
-            title: 'New Order Received',
-            body: `A new ${order.serviceType} order has been placed by ${customerName}.`,
-          },
-          token: admin.deviceToken,
-        };
-        await messaging.send(adminMessage);
-      }
     } catch (notifyError) {
       console.error('Failed to process notification:', notifyError);
     }

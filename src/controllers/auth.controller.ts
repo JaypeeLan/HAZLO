@@ -11,6 +11,7 @@ import {
 } from '../utils/helpers';
 import UserModel from '../models/user';
 import { sendCodeEmail } from '../services/mail';
+import { notifyUser } from '../services/notification';
 
 export const register = async (
   req: Request,
@@ -56,6 +57,17 @@ export const register = async (
       code: verificationToken,
       kind: 'welcome',
     });
+
+    try {
+      await notifyUser({
+        userId: createdUser._id as string,
+        title: 'Welcome to Hazlo',
+        body: 'Your account is ready. Verify your email to start placing orders.',
+        type: 'welcome',
+      });
+    } catch (notifyError) {
+      console.error('Failed to send welcome notification:', notifyError);
+    }
 
     const token = generateJwtToken(createdUser._id as string);
 

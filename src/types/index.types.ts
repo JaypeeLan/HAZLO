@@ -84,7 +84,7 @@ export interface NotificationInterface {
   user: Types.ObjectId;
   title: string;
   message: string;
-  type?: 'system' | 'order' | 'payment';
+  type?: 'system' | 'order' | 'payment' | 'profile' | 'refund' | 'welcome';
   read: boolean;
   metadata?: Record<string, any>;
   createdAt?: Date;

@@ -5,8 +5,7 @@ import { sendResponse } from '../utils/sendResponse';
 import UserModel from '../models/user';
 
 import cloudinary from 'cloudinary';
-import { messaging } from '../services/firebase/admin';
-import NotificationModel from '../models/notification';
+import { notifyUser } from '../services/notification';
 
 export const getProfile = async (
   req: Request,
@@ -78,27 +77,13 @@ export const updateProfile = async (
     }
 
     try {
-      // Always save notification
-      await NotificationModel.create({
-        user: userId,
+      await notifyUser({
+        userId,
         title: 'Profile Updated',
-        message: 'Your profile has been updated successfully.',
+        body: 'Your profile has been updated successfully.',
         type: 'profile',
-        read: false,
         metadata: { updatedFields: Object.keys(updateData) },
       });
-
-      // Only send push if deviceToken is present
-      if (updatedUser.deviceToken) {
-        const message = {
-          notification: {
-            title: 'Profile Updated',
-            body: 'Your profile has been updated successfully.',
-          },
-          token: updatedUser.deviceToken,
-        };
-        await messaging.send(message);
-      }
     } catch (notifyError) {
       console.error(
         'Failed to process profile update notification:',
