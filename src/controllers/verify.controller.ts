@@ -12,7 +12,7 @@ import {
   generateVerificationToken,
   updateUserVerification,
 } from '../utils/helpers';
-import { sendEmail } from '../services/mail';
+import { sendCodeEmail } from '../services/mail';
 
 // export const sendOtp = async (
 //   req: Request,
@@ -104,18 +104,10 @@ export const sendEmailVerification = async (
     const token = generateVerificationToken();
     await UserModel.create({ email, verificationToken: token });
 
-    await sendEmail({
+    await sendCodeEmail({
       to: email,
-      subject: 'Welcome! Please Verify Your Email Address',
-      text: `Hello,\n\nThank you for signing up with us! To complete your account setup, please verify your email address using the following token:\n\nVerification Token: ${token}\n\nEnter this token in the verification section of our app or website to activate your account. This token is valid for 24 hours.\n\nIf you did not create this account, please ignore this email.\n\nBest regards,\nThe Team`,
-      html: `
-        <h2>Welcome to Our Platform!</h2>
-        <p>Thank you for signing up with us! To complete your account setup, please verify your email address using the token below:</p>
-        <p><strong>Verification Token: ${token}</strong></p>
-        <p>Enter this token in the verification section of our app or website to activate your account. This token is valid for 24 hours.</p>
-        <p>If you did not create this account, please ignore this email.</p>
-        <p>Best regards,<br>The Team</p>
-      `,
+      code: token,
+      kind: 'welcome',
     });
 
     sendResponse({
@@ -162,17 +154,10 @@ export const verifyEmail = async (
       const verificationToken = generateResetToken();
       const tokenExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000);
 
-      await sendEmail({
+      await sendCodeEmail({
         to: user.email,
-        subject: 'Please Verify Your Email Address',
-        text: `Hello,\n\nYour verification token has expired. Please use the following new token to verify your email address:\n\nVerification Token: ${verificationToken}\n\nEnter this token in the verification section of our app or website to activate your account. This token is valid for 24 hours.\n\nBest regards,\nThe Team`,
-        html: `
-          <h2>Verify Your Email Address</h2>
-          <p>Your verification token has expired. Please use the new token below to verify your email address:</p>
-          <p><strong>Verification Token: ${verificationToken}</strong></p>
-          <p>Enter this token in the verification section of our app or website to activate your account. This token is valid for 24 hours.</p>
-          <p>Best regards,<br>The Team</p>
-        `,
+        code: verificationToken,
+        kind: 'verify',
       });
 
       user.verificationToken = verificationToken;
