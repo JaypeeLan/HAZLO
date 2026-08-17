@@ -10,7 +10,7 @@ import {
   formatUser,
 } from '../utils/helpers';
 import UserModel from '../models/user';
-import { sendEmail } from '../services/mail';
+import { sendCodeEmail } from '../services/mail';
 
 export const register = async (
   req: Request,
@@ -51,18 +51,10 @@ export const register = async (
       countryCode,
     });
 
-    await sendEmail({
+    await sendCodeEmail({
       to: email,
-      subject: 'Welcome! Please Verify Your Email Address',
-      text: `Hello,\n\nThank you for registering with us! To complete your account setup, please verify your email address using the following token:\n\nVerification Token: ${verificationToken}\n\nEnter this token in the verification section of our app or website to activate your account. This token is valid for 24 hours.\n\nIf you did not create this account, please ignore this email.\n\nBest regards,\nThe Team`,
-      html: `
-        <h2>Welcome to Hazlo!</h2>
-        <p>Thank you for registering with us! To complete your account setup, please verify your email address using the token below:</p>
-        <p><strong>Verification Token: ${verificationToken}</strong></p>
-        <p>Enter this token in the verification section of our app or website to activate your account. This token is valid for 24 hours.</p>
-        <p>If you did not create this account, please ignore this email.</p>
-        <p>Best regards,<br>The Team</p>
-      `,
+      code: verificationToken,
+      kind: 'welcome',
     });
 
     const token = generateJwtToken(createdUser._id as string);
@@ -112,18 +104,10 @@ export const login = async (
       const verificationToken = generateResetToken();
       const tokenExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000);
 
-      await sendEmail({
+      await sendCodeEmail({
         to: email,
-        subject: 'Please Verify Your Email Address',
-        text: `Hello,\n\nYour account is not yet verified. Please use the following token to verify your email address:\n\nVerification Token: ${verificationToken}\n\nEnter this token in the verification section of our app or website to activate your account. This token is valid for 24 hours.\n\nIf you did not attempt to log in, please ignore this email.\n\nBest regards,\nThe Team`,
-        html: `
-          <h2>Verify Your Email Address</h2>
-          <p>Your account is not yet verified. Please use the token below to verify your email address:</p>
-          <p><strong>Verification Token: ${verificationToken}</strong></p>
-          <p>Enter this token in the verification section of our app or website to activate your account. This token is valid for 24 hours.</p>
-          <p>If you did not attempt to log in, please ignore this email.</p>
-          <p>Best regards,<br>The Team</p>
-        `,
+        code: verificationToken,
+        kind: 'verify',
       });
 
       user.verificationToken = verificationToken;
@@ -183,18 +167,10 @@ export const resetPassword = async (
     await user.save();
 
     if (email) {
-      await sendEmail({
+      await sendCodeEmail({
         to: email,
-        subject: 'Password Reset Request',
-        text: `Hello,\n\nWe received a request to reset your account password. Please use the following token to reset your password:\n\nReset Token: ${resetToken}\n\nEnter this token in the password reset section of our app or website. This token is valid for 1 hour.\n\nIf you did not request a password reset, please ignore this email or contact our support team.\n\nBest regards,\nThe Team`,
-        html: `
-          <h2>Password Reset Request</h2>
-          <p>We received a request to reset your account password. Please use the token below to reset your password:</p>
-          <p><strong>Reset Token: ${resetToken}</strong></p>
-          <p>Enter this token in the password reset section of our app or website. This token is valid for 1 hour.</p>
-          <p>If you did not request a password reset, please ignore this email or contact our support team.</p>
-          <p>Best regards,<br>The Team</p>
-        `,
+        code: resetToken,
+        kind: 'reset',
       });
       // } else if (phone) {
       //   await twilioClient.verify.v2
@@ -248,18 +224,10 @@ export const resendVerificationToken = async (
     await user.save();
 
     // Send email again
-    await sendEmail({
+    await sendCodeEmail({
       to: email,
-      subject: 'Resend Verification - Please Verify Your Email Address',
-      text: `Hello,\n\nHere is your new verification token:\n\nVerification Token: ${verificationToken}\n\nThis token is valid for 24 hours.\n\nIf you did not request this, please ignore this email.\n\nBest regards,\nThe Team`,
-      html: `
-        <h2>Email Verification</h2>
-        <p>You requested a new verification token. Use the token below:</p>
-        <p><strong>Verification Token: ${verificationToken}</strong></p>
-        <p>This token is valid for 24 hours.</p>
-        <p>If you did not request this, please ignore this email.</p>
-        <p>Best regards,<br>The Team</p>
-      `,
+      code: verificationToken,
+      kind: 'verify',
     });
 
     sendResponse({
