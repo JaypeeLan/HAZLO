@@ -3,9 +3,22 @@ import { Request, Response, NextFunction } from 'express';
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const nameRegex = /^[a-zA-Z\s]+$/;
+const personNameKeys = new Set([
+  'name',
+  'firstname',
+  'lastname',
+  'fullname',
+  'customername',
+  'username',
+]);
 
 const passwordRegex =
   /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]).{6,}$/;
+
+const isEmptyValue = (value: unknown) =>
+  value === null ||
+  value === undefined ||
+  (typeof value === 'string' && value.trim() === '');
 
 const globalValidator = (obj: any): string[] => {
   const errors: string[] = [];
@@ -15,22 +28,17 @@ const globalValidator = (obj: any): string[] => {
       const fullKey = prefix ? `${prefix}.${key}` : key;
       const value = item[key];
 
-      if (value === null || value === undefined) {
-        errors.push(`${fullKey} is required`);
+      // Optional fields (date, time, itemName extras, etc.) may arrive empty.
+      if (isEmptyValue(value)) {
         continue;
       }
 
       if (typeof value === 'string') {
-        if (value.trim() === '') {
-          errors.push(`${fullKey} should not be empty`);
-          continue;
-        }
-
         if (key.toLowerCase().includes('email') && !emailRegex.test(value)) {
           errors.push(`${fullKey} is not a valid email`);
         }
 
-        if (key.toLowerCase().includes('name') && !nameRegex.test(value)) {
+        if (personNameKeys.has(key.toLowerCase()) && !nameRegex.test(value)) {
           errors.push(`${fullKey} must contain only letters and spaces`);
         }
 
