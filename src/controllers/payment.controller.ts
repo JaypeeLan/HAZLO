@@ -13,7 +13,7 @@ export const initializeOrderPayment = async (
   next: NextFunction
 ) => {
   try {
-    const { orderId } = req.params;
+    const orderId = String(req.params.orderId);
     const email = req.user.email;
     const paymentData = await paymentService.initializePayment(orderId, email);
 
@@ -103,7 +103,7 @@ export const refundOrder = async (
   next: NextFunction
 ) => {
   try {
-    const { orderId } = req.params;
+    const orderId = String(req.params.orderId);
     const { reason } = req.body;
     const refundData = await paymentService.createRefund(
       orderId,
