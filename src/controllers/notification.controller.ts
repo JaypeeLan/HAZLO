@@ -1,9 +1,10 @@
 import { NextFunction, Request, Response } from 'express';
 import { sendResponse } from '../utils/sendResponse';
 import { AppError } from '../middlewares/errorHandler';
-import { messaging } from '../services/firebase/admin';
 import NotificationModel from '../models/notification';
+import UserModel from '../models/user';
 import mongoose from 'mongoose';
+import { notifyUser } from '../services/notification';
 
 export const sendPushNotification = async (
   req: Request,
@@ -13,56 +14,32 @@ export const sendPushNotification = async (
   try {
     const { userId, deviceToken, title, body, type, metadata } = req.body;
 
-    if (!userId || !deviceToken) {
-      throw new AppError('Missing required fields: userId or deviceToken', 400);
+    if (!userId) {
+      throw new AppError('Missing required field: userId', 400);
     }
     if (!title || !body) {
       throw new AppError('Missing required fields: title, body', 400);
     }
 
-    const message = {
-      notification: { title, body },
-      token: deviceToken,
-      android: {
-        priority: 'high' as const,
-        notification: {
-          sound: 'default',
-          channelId: 'default',
-        },
-      },
-      apns: {
-        payload: {
-          aps: { sound: 'default' },
-        },
-      },
-    };
-
-    try {
-      const fcmResponse = await messaging.send(message);
-
-      const notification = await NotificationModel.create({
-        user: userId,
-        title,
-        message: body,
-        type: type || 'system',
-        read: false,
-        metadata,
-      });
-
-      return sendResponse({
-        res,
-        statusCode: 200,
-        status: 'success',
-        message: 'Notification sent successfully',
-        data: {
-          userId,
-          fcmMessageId: fcmResponse,
-          notification,
-        },
-      });
-    } catch (err: any) {
-      throw new AppError(err.message || 'FCM send failed', 500);
+    if (deviceToken && typeof deviceToken === 'string') {
+      await UserModel.findByIdAndUpdate(userId, { deviceToken });
     }
+
+    await notifyUser({
+      userId,
+      title,
+      body,
+      type: type || 'system',
+      metadata,
+    });
+
+    return sendResponse({
+      res,
+      statusCode: 200,
+      status: 'success',
+      message: 'Notification sent successfully',
+      data: { userId },
+    });
   } catch (error: any) {
     console.error('Send notification error:', error);
     return next(

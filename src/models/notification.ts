@@ -10,7 +10,7 @@ const notificationSchema = new Schema<INotification>(
     message: { type: String, required: true, trim: true },
     type: {
       type: String,
-      enum: ['system', 'order', 'payment'],
+      enum: ['system', 'order', 'payment', 'profile', 'refund', 'welcome'],
       default: 'system',
     },
     read: { type: Boolean, default: false },
